@@ -15,6 +15,8 @@ struct PlaceDetailScreen: View {
     @State private var showUnlockSheet = false
     @State private var nextStop: Place? = nil
     @State private var rotationTimer: Timer?
+    @State private var lookaroundScene: MKLookAroundScene?
+    @State private var showLookAround = false
 
     // Computed property to get the current place
     private var currentPlace: Place {
@@ -45,7 +47,23 @@ struct PlaceDetailScreen: View {
                         }
                     }
                     .onAppear {
+                        // Use a higher pitch for landmarks, lower pitch for non-landmarks
+                        let initialPitch: CLLocationDegrees = currentPlace.isLandmark ? 65 : 0
+
+                        // Initialize map camera with appropriate pitch for the first place
+                        position = .camera(
+                            MapCamera(
+                                centerCoordinate: currentPlace.coordinate,
+                                distance: distance,
+                                heading: heading,
+                                pitch: initialPitch
+                            )
+                        )
+
                         updateMapCamera(for: currentPlace)
+                    }
+                    .task {
+                        await fetchLookaroundPreview()
                     }
                     .mapStyle(
                         .standard(
@@ -69,20 +87,6 @@ struct PlaceDetailScreen: View {
                     VStack {
                         Spacer()
                         VStack(spacing: 24) {
-                            PillShapedIconTextButton(
-                                text: "Explore more to Unlock",
-                                sfSymbol: "lock.fill"
-                            ) {
-                                // Your action here, e.g., toggling a sheet
-                                showUnlockSheet.toggle()
-                            }
-                            .sheet(isPresented: $showUnlockSheet) {
-                                VStack {
-                                    Text("Unlock Features")
-                                }
-                                .presentationBackground(.regularMaterial)
-                            }
-
                             if currentPlaceIndex < places.count - 1 {
                                 // Show the NextStopButton if there's a next landmark
                                 NextStopButton(
@@ -91,7 +95,7 @@ struct PlaceDetailScreen: View {
                                     description: places[currentPlaceIndex + 1].description,
                                     isLandmark: places[currentPlaceIndex + 1].isLandmark,
                                     distance: 1000, // Example distance
-                                    pitch: 65, // Example pitch
+                                    pitch: places[currentPlaceIndex].isLandmark ? 65 : 0,
                                     heading: 0 // Example heading
                                 ) {
                                     // Move to the next landmark
@@ -114,6 +118,20 @@ struct PlaceDetailScreen: View {
                                 .padding(.horizontal)
                                 .transition(.opacity)
                                 .animation(.easeInOut(duration: 0.3), value: currentPlaceIndex)
+                            
+                            PillShapedIconTextButton(
+                                text: "Explore",
+                                sfSymbol: "safari.fill"
+                            ) {
+                                // Your action here, e.g., toggling a sheet
+                                showUnlockSheet.toggle()
+                            }
+                            .sheet(isPresented: $showUnlockSheet) {
+                                VStack {
+                                    Text("Unlock Features")
+                                }
+                                .presentationBackground(.regularMaterial)
+                            }
                         }
                         .padding(.bottom, 120)
                         .background(
@@ -182,6 +200,9 @@ struct PlaceDetailScreen: View {
         // Cancel any existing timer
         rotationTimer?.invalidate()
         
+        // Use a higher pitch for landmarks, lower pitch for non-landmarks
+        let targetPitch: CLLocationDegrees = landmark.isLandmark ? 65 : 0  // Adjust the pitch values to your preference
+        
         // First move to location with animation
         withAnimation(.easeInOut(duration: 2.0)) {
             position = .camera(
@@ -189,7 +210,7 @@ struct PlaceDetailScreen: View {
                     centerCoordinate: landmark.coordinate,
                     distance: distance,
                     heading: heading,
-                    pitch: 80
+                    pitch: targetPitch  // Use the adjusted pitch
                 )
             )
         }
@@ -207,7 +228,7 @@ struct PlaceDetailScreen: View {
                         centerCoordinate: currentPlace.coordinate,
                         distance: distance,
                         heading: heading,
-                        pitch: 80
+                        pitch: targetPitch  // Keep the same pitch during rotation
                     )
                 )
             }
@@ -220,8 +241,18 @@ struct PlaceDetailScreen: View {
                 currentPlaceIndex += 1
             }
             updateMapCamera(for: currentPlace)
+            // Add Task to fetch new preview
+            Task {
+                await fetchLookaroundPreview()
+            }
         }
     }
+    
+    func fetchLookaroundPreview() async {
+            lookaroundScene = nil
+            let lookaroundRequest = MKLookAroundSceneRequest(coordinate: currentPlace.coordinate)
+            lookaroundScene = try? await lookaroundRequest.scene
+        }
 }
 
 #Preview {
