@@ -1,7 +1,7 @@
 import SwiftUI
 import MapKit
 import SwiftData
-
+/*
 // MARK: - Models
 struct TourAPIResponse: Decodable {
     let places: [PlaceAPIData]
@@ -334,4 +334,4 @@ struct GenerateTour: View {
             }
         }
     }
-}
+}*/

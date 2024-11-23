@@ -1,14 +1,41 @@
-//
-//  AddTourScreen.swift
-//  Atlas
-//
-//  Created by João Franco on 23/11/2024.
-//  Copyright © 2024 com.miguel. All rights reserved.
-//
-
 import SwiftUI
+import MapKit
+import SwiftData
+
+// MARK: - Models
+struct TourAPIResponse: Decodable {
+    let places: [PlaceAPIData]
+}
+
+struct PlaceAPIData: Decodable {
+    let city: String
+    let coordinates: [String]
+    let description: String
+    let isLandmark: Bool
+    let reason: String
+    let title: String
+}
+
+// MARK: - Network Service
+class TourAPIService {
+    static let shared = TourAPIService()
+    private init() {}
+    
+    func generateTour(prompt: String) async throws -> TourAPIResponse {
+        guard let url = URL(string: "https://atlas-api-service.xb8vmgez1emgp.us-west-2.cs.amazonlightsail.com/plan") else {
+            throw URLError(.badURL)
+        }
+        
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode(TourAPIResponse.self, from: data)
+    }
+}
 
 struct AddTourScreen: View {
+    enum AtlasState {
+        case none
+        case thinking
+    }
     @State private var days = 1
     @State private var currentStep = 1
     @State private var selectedCity: City?
@@ -16,6 +43,19 @@ struct AddTourScreen: View {
     @State private var selectedCityIndex = 0
     @State private var selectedStyleIndex = 0
     @State private var startDate = Date()
+    
+    @State private var navigateToPlaceDetail = false
+    @State private var createdTour: Tour?
+    @State private var state: AtlasState = .none
+    @State private var showError = false
+    @State private var errorMessage = ""
+    @State private var displayedText = ""
+    @State private var currentMessageIndex = 0
+    @State private var isAnimating = false
+    @State private var maskTimer: Float = 0.0
+    @State private var timer: Timer?
+    
+    @Environment(\.modelContext) private var modelContext
     
     let predefinedCities = [
         City(name: "Lisbon", country: "Portugal", imageName: "lisbon"),
@@ -26,7 +66,6 @@ struct AddTourScreen: View {
         City(name: "Paris", country: "France", imageName: "paris")
     ]
     
-    // Add this after predefinedCities
     let vacationStyles = [
         VacationStyle(name: "Relax", description: "Peaceful and relaxing experience", imageName: "relax",
                       colors: [.blue, .cyan]),
@@ -38,6 +77,19 @@ struct AddTourScreen: View {
                       colors: [.green, .mint]),
         VacationStyle(name: "Fun", description: "Entertainment and nightlife", imageName: "fun",
                       colors: [.pink, .purple])
+    ]
+    
+    private let loadingMessages = [
+        "Fasten your seatbelt, we're checking your trip details!",
+        "Locating you... Are you at the beach or in the mountains?",
+        "Clouds are in the forecast... or maybe a trip?",
+        "Your trip is coming... Hold tight!",
+        "Are we there yet? Just kidding, still loading.",
+        "Fetching the perfect vacation weather (crossing our fingers)!",
+        "Your adventure is almost ready, just need to check the clouds.",
+        "Gathering your luggage... virtual luggage, of course.",
+        "Hope you packed sunscreen... loading your trip info!",
+        "Making sure the clouds are clear for takeoff!"
     ]
     
     var body: some View {
@@ -59,7 +111,7 @@ struct AddTourScreen: View {
                     vacationStyles: vacationStyles
                 )
                 
-                NavigationButtons(currentStep: $currentStep)
+                NavigationButtons(handleFinishButton: handleFinishButton, currentStep: $currentStep)
                     .padding()
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -68,6 +120,110 @@ struct AddTourScreen: View {
                                startPoint: .top,
                                endPoint: .bottom)
             )
+            .navigationDestination(isPresented: $navigateToPlaceDetail) {
+                if let tour = createdTour, let firstPlace = tour.places.first {
+                    PlaceDetailScreen(places: tour.places, title: tour.name, placeIndex: 0)
+                }
+            }
+        }
+    }
+    
+    public func handleFinishButton() {
+        if currentStep < 4 {
+            withAnimation(.spring()) {
+                currentStep += 1
+            }
+        } else {
+            Task {
+                do {
+                    withAnimation(.easeInOut(duration: 0.9)) {
+                        state = .thinking
+                    }
+                    
+                    let response = try await TourAPIService.shared.generateTour(prompt: "Generate tour for \(selectedCity?.name ?? "") with style \(selectedStyle?.name ?? "") for \(days) days starting from \(startDate)")
+                    let tour = createTour(from: response)
+                    createdTour = tour
+                    
+                    withAnimation(.easeInOut(duration: 0.9)) {
+                        state = .none
+                        navigateToPlaceDetail = true
+                    }
+                } catch {
+                    showError = true
+                    errorMessage = error.localizedDescription
+                    
+                    withAnimation(.easeInOut(duration: 0.9)) {
+                        state = .none
+                    }
+                }
+            }
+        }
+    }
+    
+    private func createTour(from response: TourAPIResponse) -> Tour {
+        let tour = Tour(name: "Lisbon adventures")
+        
+        let places = response.places.map { placeData in
+            Place(
+                coordinate: CLLocationCoordinate2D(
+                    latitude: Double(placeData.coordinates[0]) ?? 0,
+                    longitude: Double(placeData.coordinates[1]) ?? 0
+                ),
+                title: placeData.title,
+                description: placeData.description,
+                isLandmark: placeData.isLandmark
+            )
+        }
+        
+        tour.places = places
+        modelContext.insert(tour)
+        
+        // Save the context
+        try? modelContext.save()
+        return tour
+    }
+    
+    private func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
+            DispatchQueue.main.async {
+                maskTimer += 0.03
+            }
+        }
+    }
+    
+    private func startLoadingCycle() {
+        timer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
+            startTypewriterAnimation(toIndex: (currentMessageIndex + 1) % loadingMessages.count)
+        }
+        startTypewriterAnimation(toIndex: currentMessageIndex)
+    }
+    
+    private func startTypewriterAnimation(toIndex nextIndex: Int) {
+        let currentMessage = loadingMessages[currentMessageIndex]
+        isAnimating = true
+        
+        var deletingIndex = currentMessage.count
+        Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { timer in
+            if deletingIndex > 0 {
+                deletingIndex -= 1
+                displayedText = String(currentMessage.prefix(deletingIndex))
+            } else {
+                timer.invalidate()
+                currentMessageIndex = nextIndex
+                let newMessage = loadingMessages[currentMessageIndex]
+                var typingIndex = 0
+                
+                Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+                    if typingIndex < newMessage.count {
+                        let index = newMessage.index(newMessage.startIndex, offsetBy: typingIndex)
+                        displayedText += String(newMessage[index])
+                        typingIndex += 1
+                    } else {
+                        timer.invalidate()
+                        isAnimating = false
+                    }
+                }
+            }
         }
     }
 }

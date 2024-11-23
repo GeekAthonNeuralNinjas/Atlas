@@ -2,6 +2,7 @@
 import SwiftUI
 
 struct NavigationButtons: View {
+    var handleFinishButton: () -> Void
     @Binding var currentStep: Int
     
     var body: some View {
@@ -23,7 +24,10 @@ struct NavigationButtons: View {
             
             Spacer()
             
-            Button(action: { withAnimation(.spring()) { currentStep += 1 } }) {
+            Button(action: {
+                withAnimation(.spring()) { currentStep += 1 }
+                handleFinishButton()
+            }) {
                 Label(currentStep < 4 ? "Next" : "Finish",
                       systemImage: currentStep < 4 ? "chevron.right" : "checkmark")
                 .font(.body.weight(.medium))

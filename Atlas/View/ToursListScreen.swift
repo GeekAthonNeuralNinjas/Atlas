@@ -43,12 +43,12 @@ struct ToursListScreen: View {
                                     }
                                 }
                                 
-                                ToolbarItem(placement: .navigationBarTrailing) {
+                                /*ToolbarItem(placement: .navigationBarTrailing) {
                                     //Button to add a new tour / AddTourScreen
                                     NavigationLink(destination: GenerateTour()) {
                                         Image(systemName: "eye")
                                     }
-                                }
+                                }*/
                             }
                         }
                     }
