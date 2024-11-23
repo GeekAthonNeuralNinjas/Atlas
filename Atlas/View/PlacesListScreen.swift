@@ -22,7 +22,7 @@ struct PlacesListScreen: View {
                         ForEach(places.indices, id: \.self) { index in
                             NavigationLink(
                                 destination:
-                                    TourScreen(
+                                    PlaceDetailScreen(
                                         places: places,
                                         title: "Places to See",
                                         placeIndex: index
