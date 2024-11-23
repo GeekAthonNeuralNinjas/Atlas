@@ -1,7 +1,7 @@
 import SwiftUI
 import MapKit
 
-struct LandmarkScreen: View {
+struct TourScreen: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var landmarks: [Place]
     @State private var currentLandmarkIndex: Int
@@ -253,7 +253,7 @@ struct LandmarkScreen: View {
         )
     ]
     
-    LandmarkScreen(
+    TourScreen(
         landmarks: landmarks,
         distance: 500,
         title: "Landmarks",

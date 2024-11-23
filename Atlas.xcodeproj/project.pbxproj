@@ -38,19 +38,19 @@
 		16CB79CF2CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Atlas" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Components/GenerateTour/Ripples/RippleShader.metal,
 				Info.plist,
-				View/TourViewController.swift,
 			);
 			target = 16B254D62CF13A96002353B9 /* Atlas */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		16CB79D02CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Copy Bundle Resources" phase from "Atlas" target */ = {
+		16CB7A962CF219FC00584E82 /* Exceptions for "Atlas" folder in "Copy Bundle Resources" phase from "Atlas" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 16B254D52CF13A96002353B9 /* Resources */;
 			membershipExceptions = (
-				View/TourViewController.swift,
+				Components/GenerateTour/Ripples/RippleShader.metal,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -70,7 +70,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				16CB79CF2CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Atlas" target */,
-				16CB79D02CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Copy Bundle Resources" phase from "Atlas" target */,
+				16CB7A962CF219FC00584E82 /* Exceptions for "Atlas" folder in "Copy Bundle Resources" phase from "Atlas" target */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -425,11 +425,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Atlas/Preview Content\"";
-				DEVELOPMENT_TEAM = 3XDB3VGYA3;
+				DEVELOPMENT_TEAM = BFJTBBXTZ9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Atlas/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access for text input.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition for text input.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -445,7 +447,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.miguel.Atlas;
+				PRODUCT_BUNDLE_IDENTIFIER = com.joaofranco.Atlas;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -465,11 +467,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Atlas/Preview Content\"";
-				DEVELOPMENT_TEAM = 3XDB3VGYA3;
+				DEVELOPMENT_TEAM = BFJTBBXTZ9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Atlas/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access for text input.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition for text input.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -485,7 +489,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.miguel.Atlas;
+				PRODUCT_BUNDLE_IDENTIFIER = com.joaofranco.Atlas;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
