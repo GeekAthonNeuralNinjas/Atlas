@@ -3,7 +3,7 @@ import MapKit
 
 struct ContentView: View {    
     var body: some View {
-        Home()
+        Tours()
     }
 }
 

@@ -13,7 +13,7 @@ struct NetworkManager {
     private init() {}
 
     func fetchPlaces(completion: @escaping (Result<[Place], Error>) -> Void) {
-        guard let url = URL(string: "http://localhost:5000/sample") else {
+        guard let url = URL(string: "https://atlas-api-service.xb8vmgez1emgp.us-west-2.cs.amazonlightsail.com/plan") else {
             completion(.failure(URLError(.badURL)))
             return
         }

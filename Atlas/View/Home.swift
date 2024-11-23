@@ -1,9 +1,3 @@
-//
-//  Home.swift
-//  Atlas
-//
-//  Created by João Franco on 23/11/2024.
-//
 import SwiftUI
 import MapKit
 
@@ -26,14 +20,15 @@ struct Home: View {
                     ScrollView {
                         VStack(alignment: .leading) {
                             headerView
-                            ForEach(landmarks, id: \.title) { place in
+                            ForEach(landmarks.indices, id: \.self) { index in
                                 NavigationLink(
                                     destination: LandmarkScreen(
                                         landmarks: landmarks,
-                                        title: "Landmarks"
+                                        title: "Landmarks",
+                                        currentLandmarkIndex: index
                                     )
                                 ) {
-                                    tripCard(place: place)
+                                    placeCard(place: landmarks[index])
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }

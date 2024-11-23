@@ -4,7 +4,7 @@ import MapKit
 struct LandmarkScreen: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var landmarks: [Place]
-    @State private var currentLandmarkIndex: Int = 0
+    @State private var currentLandmarkIndex: Int
     @State private var position: MapCameraPosition = .automatic
     @State private var heading: CLLocationDirection = 100
     private let rotationSpeed: CLLocationDirection = 0.1
@@ -21,11 +21,12 @@ struct LandmarkScreen: View {
         landmarks[currentLandmarkIndex]
     }
 
-    init(landmarks: [Place], distance: CLLocationDistance = 500, title: String) {
+    init(landmarks: [Place], distance: CLLocationDistance = 500, title: String, currentLandmarkIndex: Int = 0) {
         _landmarks = State(initialValue: landmarks)
         _distance = State(initialValue: distance)
         _title = State(initialValue: title)
         _isDarkMode = State(initialValue: UITraitCollection.current.userInterfaceStyle == .dark)
+        _currentLandmarkIndex = State(initialValue: currentLandmarkIndex)
     }
 
     var body: some View {
@@ -255,7 +256,8 @@ struct LandmarkScreen: View {
     LandmarkScreen(
         landmarks: landmarks,
         distance: 500,
-        title: "Landmarks"
+        title: "Landmarks",
+        currentLandmarkIndex: 1 
     )
 }
 
@@ -286,5 +288,5 @@ struct LandmarkScreen: View {
             isLandmark: true
         )
     ]
-    LandmarkScreen(landmarks: landmarks, title: "Example")
+    LandmarkScreen(landmarks: landmarks, title: "Example", currentLandmarkIndex: 1 )
 }
