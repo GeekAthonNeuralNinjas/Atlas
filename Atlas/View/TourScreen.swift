@@ -3,8 +3,8 @@ import MapKit
 
 struct TourScreen: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var landmarks: [Place]
-    @State private var currentLandmarkIndex: Int
+    @State private var places: [Place]
+    @State private var currentPlaceIndex: Int
     @State private var position: MapCameraPosition = .automatic
     @State private var heading: CLLocationDirection = 100
     private let rotationSpeed: CLLocationDirection = 0.1
@@ -16,17 +16,17 @@ struct TourScreen: View {
     @State private var nextStop: Place? = nil
     @State private var rotationTimer: Timer?
 
-    // Computed property to get the current landmark
-    private var currentLandmark: Place {
-        landmarks[currentLandmarkIndex]
+    // Computed property to get the current place
+    private var currentPlace: Place {
+        places[currentPlaceIndex]
     }
 
-    init(landmarks: [Place], distance: CLLocationDistance = 500, title: String, currentLandmarkIndex: Int = 0) {
-        _landmarks = State(initialValue: landmarks)
+    init(places: [Place], distance: CLLocationDistance = 500, title: String, placeIndex: Int = 0) {
+        _places = State(initialValue: places)
         _distance = State(initialValue: distance)
         _title = State(initialValue: title)
         _isDarkMode = State(initialValue: UITraitCollection.current.userInterfaceStyle == .dark)
-        _currentLandmarkIndex = State(initialValue: currentLandmarkIndex)
+        _currentPlaceIndex = State(initialValue: placeIndex)
     }
 
     var body: some View {
@@ -37,15 +37,15 @@ struct TourScreen: View {
                         interactionModes: [.pan, .zoom, .rotate],
                         selection: .constant(nil)) {
                         // Add markers for non-landmark places
-                        ForEach(landmarks.indices, id: \.self) { index in
-                            if !landmarks[index].isLandmark {
-                                Marker(landmarks[index].title, coordinate: landmarks[index].coordinate)
+                        ForEach(places.indices, id: \.self) { index in
+                            if !places[index].isLandmark {
+                                Marker(places[index].title, coordinate: places[index].coordinate)
                                     .tint(.red)
                             }
                         }
                     }
                     .onAppear {
-                        updateMapCamera(for: currentLandmark)
+                        updateMapCamera(for: currentPlace)
                     }
                     .mapStyle(
                         .standard(
@@ -83,13 +83,13 @@ struct TourScreen: View {
                                 .presentationBackground(.regularMaterial)
                             }
 
-                            if currentLandmarkIndex < landmarks.count - 1 {
+                            if currentPlaceIndex < places.count - 1 {
                                 // Show the NextStopButton if there's a next landmark
                                 NextStopButton(
-                                    title: landmarks[currentLandmarkIndex + 1].title,
-                                    coordinate: landmarks[currentLandmarkIndex + 1].coordinate,
-                                    description: landmarks[currentLandmarkIndex + 1].description,
-                                    isLandmark: landmarks[currentLandmarkIndex + 1].isLandmark,
+                                    title: places[currentPlaceIndex + 1].title,
+                                    coordinate: places[currentPlaceIndex + 1].coordinate,
+                                    description: places[currentPlaceIndex + 1].description,
+                                    isLandmark: places[currentPlaceIndex + 1].isLandmark,
                                     distance: 1000, // Example distance
                                     pitch: 65, // Example pitch
                                     heading: 0 // Example heading
@@ -99,21 +99,21 @@ struct TourScreen: View {
                                 }
                             }
 
-                            Text(currentLandmark.title)
+                            Text(currentPlace.title)
                                 .font(.system(size: 34, weight: .semibold))
                                 .fontDesign(.serif)
                                 .foregroundColor(.primary)
                                 .multilineTextAlignment(.center)
                                 .transition(.opacity)
-                                .animation(.easeInOut(duration: 0.3), value: currentLandmarkIndex)
+                                .animation(.easeInOut(duration: 0.3), value: currentPlaceIndex)
 
-                            Text(currentLandmark.description)
+                            Text(currentPlace.description)
                                 .font(.system(size: 16))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                                 .transition(.opacity)
-                                .animation(.easeInOut(duration: 0.3), value: currentLandmarkIndex)
+                                .animation(.easeInOut(duration: 0.3), value: currentPlaceIndex)
                         }
                         .padding(.bottom, 120)
                         .background(
@@ -204,7 +204,7 @@ struct TourScreen: View {
                 
                 position = .camera(
                     MapCamera(
-                        centerCoordinate: currentLandmark.coordinate,
+                        centerCoordinate: currentPlace.coordinate,
                         distance: distance,
                         heading: heading,
                         pitch: 80
@@ -215,54 +215,17 @@ struct TourScreen: View {
     }
 
     private func goToNextLandmark() {
-        if currentLandmarkIndex < landmarks.count - 1 {
+        if currentPlaceIndex < places.count - 1 {
             withAnimation(.easeInOut(duration: 0.3)) {
-                currentLandmarkIndex += 1
+                currentPlaceIndex += 1
             }
-            updateMapCamera(for: currentLandmark)
+            updateMapCamera(for: currentPlace)
         }
     }
 }
 
-// Sample Landmarks for preview
 #Preview {
-    var landmarks = [
-        Place(
-            coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
-            title: "Belém Tower",
-            description: "A 16th-century fortified tower located in Lisbon, Portugal. Built during the Age of Discoveries, this UNESCO World Heritage site served as both a fortress and a ceremonial gateway to Lisbon.",
-            isLandmark: true
-        ),
-        Place(
-            coordinate: CLLocationCoordinate2D(latitude: 38.7139, longitude: -9.1334),
-            title: "São Jorge Castle",
-            description: "Perched atop Lisbon's highest hill, this medieval castle dates back to the 11th century. It offers panoramic views of the city and stands as a testament to Portugal's rich history of Moorish and Christian rule.",
-            isLandmark: true
-        ),
-        Place(
-            coordinate: CLLocationCoordinate2D(latitude: 38.6977, longitude: -9.2063),
-            title: "Jerónimos Monastery",
-            description: "A magnificent example of Manueline architecture, this monastery was built in the 16th century. UNESCO-listed, it commemorates Vasco da Gama's voyage and represents the wealth of Portuguese discovery era.",
-            isLandmark: true
-        ),
-        Place(
-            coordinate: CLLocationCoordinate2D(latitude: 38.6970, longitude: -9.2033),
-            title: "Pastéis de Belém",
-            description: "The original home of Portugal's famous pastéis de nata, this historic pastry shop has been serving their secret-recipe custard tarts since 1837. Located near Jerónimos Monastery, it's a must-visit culinary destination.",
-            isLandmark: false
-        )
-    ]
-    
-    TourScreen(
-        landmarks: landmarks,
-        distance: 500,
-        title: "Landmarks",
-        currentLandmarkIndex: 1 
-    )
-}
-
-#Preview {
-    var landmarks = [
+    var places = [
         Place(
             coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
             title: "Belém Tower",
@@ -288,5 +251,5 @@ struct TourScreen: View {
             isLandmark: true
         )
     ]
-    LandmarkScreen(landmarks: landmarks, title: "Example", currentLandmarkIndex: 1 )
+    TourScreen(places: places, title: "Example", placeIndex: 1 )
 }

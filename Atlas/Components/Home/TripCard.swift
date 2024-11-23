@@ -9,7 +9,6 @@ import SwiftUI
 func tourCard(tour: Tour) -> some View {
     VStack(alignment: .leading) {
         HStack {
-            
             VStack(alignment: .leading) {
                 Text(tour.name)
                     .font(.title3)

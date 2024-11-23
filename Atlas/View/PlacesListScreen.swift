@@ -1,42 +1,42 @@
 import SwiftUI
 import MapKit
 
-struct Home: View {
-    @State private var landmarks: [Place] = []
+struct PlacesListScreen: View {
+    @State public var title: String
+    @State private var places: [Place] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             if isLoading {
                 ProgressView("Loading places...")
-                    .navigationTitle("Landmarks")
+                    .navigationTitle(title)
             } else if let errorMessage = errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
                     .padding()
             } else {
-                GeometryReader { proxy in
-                    ScrollView {
-                        VStack(alignment: .leading) {
-                            headerView
-                            ForEach(landmarks.indices, id: \.self) { index in
-                                NavigationLink(
-                                    destination: LandmarkScreen(
-                                        landmarks: landmarks,
-                                        title: "Landmarks",
-                                        currentLandmarkIndex: index
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) { // Adjust the spacing here if needed
+                        ForEach(places.indices, id: \.self) { index in
+                            NavigationLink(
+                                destination:
+                                    TourScreen(
+                                        places: places,
+                                        title: "Places to See",
+                                        placeIndex: index
                                     )
-                                ) {
-                                    placeCard(place: landmarks[index])
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                                )
+                            {
+                                placeCard(place: places[index])
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .padding(.top)
-                        .padding(.horizontal)
                     }
+                    .padding(.horizontal) // Horizontal padding only
                 }
+                .navigationTitle(title)
             }
         }
         .onAppear {
@@ -50,7 +50,7 @@ struct Home: View {
                 isLoading = false
                 switch result {
                 case .success(let fetchedPlaces):
-                    landmarks = fetchedPlaces
+                    places = fetchedPlaces
                 case .failure(let error):
                     errorMessage = "Failed to load places: \(error.localizedDescription)"
                 }
