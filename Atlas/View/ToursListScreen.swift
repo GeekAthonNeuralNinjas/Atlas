@@ -34,6 +34,22 @@ struct ToursListScreen: View {
                             }
                             .padding(.top)
                             .padding(.horizontal)
+                            //Toolbar with a button to add a new tour
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarTrailing) {
+                                    //Button to add a new tour / AddTourScreen
+                                    NavigationLink(destination: AddTourScreen()) {
+                                        Image(systemName: "plus")
+                                    }
+                                }
+                                
+                                ToolbarItem(placement: .navigationBarTrailing) {
+                                    //Button to add a new tour / AddTourScreen
+                                    NavigationLink(destination: GenerateTour()) {
+                                        Image(systemName: "eye")
+                                    }
+                                }
+                            }
                         }
                     }
                     .navigationTitle("Trips")
