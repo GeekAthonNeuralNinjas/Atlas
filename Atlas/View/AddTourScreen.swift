@@ -64,7 +64,7 @@ struct AddTourScreen: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .background(
-                LinearGradient(colors: [.black.opacity(0.05), .clear],
+                LinearGradient(colors: [.primary.opacity(0.05), .clear],
                                startPoint: .top,
                                endPoint: .bottom)
             )

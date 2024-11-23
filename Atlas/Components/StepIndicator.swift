@@ -24,13 +24,13 @@ struct StepDot: View {
         VStack(spacing: 6) {
             Circle()
                 .fill(step <= currentStep ? 
-                      Color.black : Color.gray.opacity(0.3))
+                      Color.primary : Color.gray.opacity(0.3))
                 .frame(width: 10, height: 10)
                 .overlay {
                     if step == currentStep {
                         Circle()
                             .stroke(
-                                Color.black.opacity(0.25), lineWidth: 4)    
+                                Color.primary.opacity(0.25), lineWidth: 4)
                             .frame(width: 20, height: 20)
                     }
                 }
@@ -49,8 +49,8 @@ struct StepConnector: View {
     
     var body: some View {
         Rectangle()
-            .fill(step < currentStep ? 
-                .black : .gray.opacity(0.2))
+            .fill(step < currentStep ?
+                Color.primary : Color.gray.opacity(0.2))
             .frame(height: 1)
             .animation(.spring(), value: currentStep)
     }

@@ -88,7 +88,7 @@ struct MainContentTabView: View {
                                 Image(systemName: "minus.circle.fill")
                                     .symbolRenderingMode(.hierarchical)
                                     .font(.system(size: 44))
-                                    .foregroundStyle(days > 1 ? .black : .secondary.opacity(0.3))
+                                    .foregroundStyle(days > 1 ? Color.primary : .secondary.opacity(0.3))
                             }
                             .disabled(days <= 1)
                             
@@ -102,7 +102,7 @@ struct MainContentTabView: View {
                                 Image(systemName: "plus.circle.fill")
                                     .symbolRenderingMode(.hierarchical)
                                     .font(.system(size: 44))
-                                    .foregroundStyle(days < 15 ? .black : .secondary.opacity(0.3))
+                                    .foregroundStyle(days < 15 ? Color.primary : .secondary.opacity(0.3))
                             }
                             .disabled(days >= 15)
                         }

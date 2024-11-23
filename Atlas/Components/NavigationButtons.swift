@@ -30,9 +30,9 @@ struct NavigationButtons: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
-                    .black
+                    Color.primary
                 )
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(.systemBackground))
                 .clipShape(Capsule())
                 .overlay(
                     Capsule()
