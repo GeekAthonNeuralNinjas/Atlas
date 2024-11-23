@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4CD79E9F2CF27DF70071A89C /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 4CD79E9E2CF27DED0071A89C /* README.md */; };
 		4CEA97582CF2143B0079C7A6 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 4CEA97572CF214340079C7A6 /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +32,7 @@
 		16B254D72CF13A96002353B9 /* Atlas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atlas.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		16B254EA2CF13A97002353B9 /* AtlasTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		16B254F42CF13A97002353B9 /* AtlasUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CD79E9E2CF27DED0071A89C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4CEA97572CF214340079C7A6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -105,6 +107,7 @@
 		16B254CE2CF13A96002353B9 = {
 			isa = PBXGroup;
 			children = (
+				4CD79E9E2CF27DED0071A89C /* README.md */,
 				4CEA97572CF214340079C7A6 /* .gitignore */,
 				16B255302CF14392002353B9 /* Atlas */,
 				16B254ED2CF13A97002353B9 /* AtlasTests */,
@@ -244,6 +247,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CD79E9F2CF27DF70071A89C /* README.md in Resources */,
 				4CEA97582CF2143B0079C7A6 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
