@@ -5,31 +5,19 @@
 //  Created by Miguel Susano on 23/11/2024.
 //  Copyright © 2024 com.miguel. All rights reserved.
 //
-
 import Foundation
+import SwiftData
 import MapKit
 
-struct Tour: Identifiable {
-    let id = UUID()
+@Model
+final class Tour {
+    var id: String
     var name: String
-    var places: [Place]
+    @Relationship(deleteRule: .cascade) var places: [Place]
+    
+    init(id: String = UUID().uuidString, name: String, places: [Place] = []) {
+        self.id = id
+        self.name = name
+        self.places = places
+    }
 }
-
-
-// Example usage
-let samplePlaces = [
-    Place(
-        coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
-        title: "Belém Tower",
-        description: "A 16th-century fortified tower located in Lisbon, Portugal.",
-        isLandmark: true
-    ),
-    Place(
-        coordinate: CLLocationCoordinate2D(latitude: 38.6970, longitude: -9.2033),
-        title: "Pastéis de Belém",
-        description: "The original home of Portugal's famous pastéis de nata.",
-        isLandmark: false
-    )
-]
-
-let sampleTour = Tour(name: "Lisbon Highlights", places: samplePlaces)

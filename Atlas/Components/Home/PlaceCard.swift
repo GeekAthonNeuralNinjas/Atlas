@@ -20,7 +20,7 @@ func placeCard(place: Place) -> some View {
                 Text(place.title)
                     .font(.title3)
                     .fontWeight(.bold)
-                Text(place.description)
+                Text(place.text)
                     .font(.subheadline)
                     .foregroundColor(.gray)
                     .lineLimit(2)

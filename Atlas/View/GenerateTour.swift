@@ -1,12 +1,35 @@
-//
-//  GenerateTour.swift
-//  Atlas
-//
-//  Created by João Franco on 23/11/2024.
-//  Copyright © 2024 com.miguel. All rights reserved.
-//
-
 import SwiftUI
+import MapKit
+import SwiftData
+
+// MARK: - Models
+struct TourAPIResponse: Decodable {
+    let places: [PlaceAPIData]
+}
+
+struct PlaceAPIData: Decodable {
+    let city: String
+    let coordinates: [String]
+    let description: String
+    let isLandmark: Bool
+    let reason: String
+    let title: String
+}
+
+// MARK: - Network Service
+class TourAPIService {
+    static let shared = TourAPIService()
+    private init() {}
+    
+    func generateTour(prompt: String) async throws -> TourAPIResponse {
+        guard let url = URL(string: "https://atlas-api-service.xb8vmgez1emgp.us-west-2.cs.amazonlightsail.com/plan") else {
+            throw URLError(.badURL)
+        }
+        
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode(TourAPIResponse.self, from: data)
+    }
+}
 
 struct GenerateTour: View {
     // MARK: - Enums
@@ -15,17 +38,22 @@ struct GenerateTour: View {
         case thinking
     }
     
-    // MARK: - View States
+    // MARK: - Environment
+    @Environment(\.modelContext) private var modelContext
+    
+    // MARK: - Navigation State
+    @State private var navigateToPlaceDetail = false
+    @State private var createdTour: Tour?
+    
+    // Previous state properties remain the same...
     @State private var state: AtlasState = .none
     @State private var userInput = ""
-    
-    // MARK: - Animation Properties
+    @State private var showError = false
+    @State private var errorMessage = ""
     @State private var counter: Int = 0
     @State private var origin: CGPoint = .init(x: 0.5, y: 0.5)
     @State private var gradientSpeed: Float = 0.03
     @State private var maskTimer: Float = 0.0
-    
-    // MARK: - Loading Message Properties
     @State private var currentMessageIndex = 0
     @State private var displayedText = ""
     @State private var isAnimating = false
@@ -48,8 +76,60 @@ struct GenerateTour: View {
         "Making sure the clouds are clear for takeoff!"
     ]
     
+    // MARK: - Helper Functions
+    private func createTour(from response: TourAPIResponse) -> Tour {
+        let tour = Tour(name: "Lisbon adventures")
+        
+        let places = response.places.map { placeData in
+            Place(
+                coordinate: CLLocationCoordinate2D(
+                    latitude: Double(placeData.coordinates[0]) ?? 0,
+                    longitude: Double(placeData.coordinates[1]) ?? 0
+                ),
+                title: placeData.title,
+                description: placeData.description,
+                isLandmark: placeData.isLandmark
+            )
+        }
+        
+        tour.places = places
+        modelContext.insert(tour)
+        
+        // Save the context
+        try? modelContext.save()
+        return tour
+    }
+    
+    private func handleSendButton() {
+        Task {
+            do {
+                withAnimation(.easeInOut(duration: 0.9)) {
+                    state = .thinking
+                }
+                
+                let response = try await TourAPIService.shared.generateTour(prompt: prompt)
+                let tour = createTour(from: response)
+                createdTour = tour
+                
+                withAnimation(.easeInOut(duration: 0.9)) {
+                    state = .none
+                    navigateToPlaceDetail = true
+                }
+                
+                // Clear the prompt
+                prompt = ""
+            } catch {
+                showError = true
+                errorMessage = error.localizedDescription
+                
+                withAnimation(.easeInOut(duration: 0.9)) {
+                    state = .none
+                }
+            }
+        }
+    }
+    
     // MARK: - Computed Properties
-    /// Determines the opacity of the background scrim based on current state
     private var scrimOpacity: Double {
         switch state {
         case .none:
@@ -58,77 +138,80 @@ struct GenerateTour: View {
             return 0.8
         }
     }
-
+    
     // MARK: - Body
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Colorful animated gradient
-                MeshGradientView(maskTimer: $maskTimer, gradientSpeed: $gradientSpeed)
-                    .scaleEffect(1.3) // avoids clipping
-                    .opacity(containerOpacity)
-                
-                // Brightness rim on edges
-                if state == .thinking {
-                    RoundedRectangle(cornerRadius: 52, style: .continuous)
-                        .stroke(Color.white, style: .init(lineWidth: 4))
-                        .blur(radius: 4)
-                }
-                
+        NavigationStack {
+            GeometryReader { geometry in
                 ZStack {
-                    // Background Image
-                    Image("wallpaper")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .scaleEffect(1.2) // avoids clipping
-                        .ignoresSafeArea()
+                    // Colorful animated gradient
+                    MeshGradientView(maskTimer: $maskTimer, gradientSpeed: $gradientSpeed)
+                        .scaleEffect(1.3)
+                        .opacity(containerOpacity)
                     
-                    // Scrim Overlay
-                    Rectangle()
-                        .fill(Color.black)
-                        .opacity(scrimOpacity)
-                        .scaleEffect(1.2) // avoids clipping
-                    
-                    VStack {
-                        loadingText
-                        inputFieldAndButton
+                    // Brightness rim on edges
+                    if state == .thinking {
+                        RoundedRectangle(cornerRadius: 52, style: .continuous)
+                            .stroke(Color.white, style: .init(lineWidth: 4))
+                            .blur(radius: 4)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .onPressingChanged { point in
-                        if let point {
-                            origin = point
-                            counter += 1
+                    
+                    ZStack {
+                        // Background Image
+                        Image("wallpaper")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .scaleEffect(1.2)
+                            .ignoresSafeArea()
+                        
+                        // Scrim Overlay
+                        Rectangle()
+                            .fill(Color.black)
+                            .opacity(scrimOpacity)
+                            .scaleEffect(1.2)
+                        
+                        VStack {
+                            loadingText
+                            inputFieldAndButton
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .onPressingChanged { point in
+                            if let point {
+                                origin = point
+                                counter += 1
+                            }
                         }
                     }
-                    .onAppear {
-                        // Start the timer when the view appears
-                        startLoadingCycle()
-                    }
-                    .onDisappear {
-                        // Invalidate the timer when the view disappears
-                        timer?.invalidate()
+                    .mask {
+                        AnimatedRectangle(size: geometry.size, cornerRadius: 48, t: CGFloat(maskTimer))
+                            .scaleEffect(computedScale)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .blur(radius: animatedMaskBlur)
                     }
                 }
-                .mask {
-                    AnimatedRectangle(size: geometry.size, cornerRadius: 48, t: CGFloat(maskTimer))
-                        .scaleEffect(computedScale)
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .blur(radius: animatedMaskBlur)
+                .navigationDestination(isPresented: $navigateToPlaceDetail) {
+                    if let tour = createdTour, let firstPlace = tour.places.first {
+                        PlaceDetailScreen(places: tour.places, title: tour.name, placeIndex: 0)
+                    }
                 }
             }
-        }
-        .ignoresSafeArea()
-        //.modifier(RippleEffect(at: origin, trigger: counter))
-        .onAppear {
-            startTimer()
-        }
-        .onDisappear {
-            timer?.invalidate()
+            .ignoresSafeArea()
+            .onAppear {
+                startTimer()
+                startLoadingCycle()
+            }
+            .onDisappear {
+                timer?.invalidate()
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
         }
     }
     
     // MARK: - View Components
-    /// Displays animated loading text when in thinking state
     @ViewBuilder
     private var loadingText: some View {
         if state == .thinking {
@@ -138,44 +221,31 @@ struct GenerateTour: View {
                 .multilineTextAlignment(.center)
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .scaleEffect(state == .thinking ? 1.1 : 1)  // Scale effect for added emphasis
-                .opacity(state == .thinking ? 1 : 0) // Fade in or fade out based on state
-                .animation(.easeInOut(duration: 0.3), value: state)  // Smooth fade and scale animation
-                .contentTransition(.opacity)  // Ensures opacity transition
-                .transition(.opacity) // Makes sure the text fades in/out with a smooth transition
+                .scaleEffect(state == .thinking ? 1.1 : 1)
+                .opacity(state == .thinking ? 1 : 0)
+                .animation(.easeInOut(duration: 0.3), value: state)
+                .contentTransition(.opacity)
+                .transition(.opacity)
         }
     }
     
-    /// Input field and send button layout
     @ViewBuilder
     private var inputFieldAndButton: some View {
         HStack {
-            // Temporarily replace TextField with Text for testing
             TextField("Enter something...", text: $prompt)
-                        .focused($isFocused) // Bind the focus state
-                        .padding()
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(8)
-                        .foregroundColor(.white)
-                        .font(.title3)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
-                        .textInputAutocapitalization(.never)
-                        .submitLabel(.done)
-                        .padding(.leading, 20)
+                .focused($isFocused)
+                .padding()
+                .background(Color.white.opacity(0.1))
+                .cornerRadius(8)
+                .foregroundColor(.white)
+                .font(.title3)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                .textInputAutocapitalization(.never)
+                .submitLabel(.done)
+                .padding(.leading, 20)
             
-            // "Send" Button
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.9)) {
-                    switch state {
-                    case .none:
-                        state = .thinking
-                        userInput = "" // Clear input when changing to thinking state
-                    case .thinking:
-                        state = .none
-                    }
-                }
-            }) {
+            Button(action: handleSendButton) {
                 Text("Send")
                     .font(.system(size: 20, weight: .bold, design: .monospaced))
                     .padding(.vertical, 12)
@@ -191,61 +261,8 @@ struct GenerateTour: View {
         .padding(.horizontal, 16)
         .padding(.bottom, 64)
     }
-
-    // MARK: - Helper Functions
-    /// Starts the animation timer for mask effect
-    private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
-            DispatchQueue.main.async {
-                maskTimer += rectangleSpeed
-            }
-        }
-    }
     
-    /// Initiates the loading message cycle with typewriter animation
-    private func startLoadingCycle() {
-        // Increase cycle duration to 8 seconds
-        timer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
-            startTypewriterAnimation(toIndex: (currentMessageIndex + 1) % loadingMessages.count)
-        }
-        // Start initial animation
-        startTypewriterAnimation(toIndex: currentMessageIndex)
-    }
-    
-    /// Animates text with typewriter effect
-    /// - Parameter toIndex: Index of the next message to display
-    private func startTypewriterAnimation(toIndex nextIndex: Int) {
-        let currentMessage = loadingMessages[currentMessageIndex]
-        isAnimating = true
-        
-        // First, delete the current text
-        var deletingIndex = currentMessage.count
-        Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { timer in
-            if deletingIndex > 0 {
-                deletingIndex -= 1
-                displayedText = String(currentMessage.prefix(deletingIndex))
-            } else {
-                timer.invalidate()
-                currentMessageIndex = nextIndex
-                // Then, write the new text
-                let newMessage = loadingMessages[currentMessageIndex]
-                var typingIndex = 0
-                
-                Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
-                    if typingIndex < newMessage.count {
-                        let index = newMessage.index(newMessage.startIndex, offsetBy: typingIndex)
-                        displayedText += String(newMessage[index])
-                        typingIndex += 1
-                    } else {
-                        timer.invalidate()
-                        isAnimating = false
-                    }
-                }
-            }
-        }
-    }
-    
-    // MARK: - Animation Helpers
+    // Rest of the animation helper functions remain the same
     private var computedScale: CGFloat {
         switch state {
         case .none: return 1.2
@@ -273,8 +290,48 @@ struct GenerateTour: View {
         case .thinking: return 1.0
         }
     }
-}
-
-#Preview {
-    GenerateTour()
+    
+    private func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
+            DispatchQueue.main.async {
+                maskTimer += rectangleSpeed
+            }
+        }
+    }
+    
+    private func startLoadingCycle() {
+        timer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
+            startTypewriterAnimation(toIndex: (currentMessageIndex + 1) % loadingMessages.count)
+        }
+        startTypewriterAnimation(toIndex: currentMessageIndex)
+    }
+    
+    private func startTypewriterAnimation(toIndex nextIndex: Int) {
+        let currentMessage = loadingMessages[currentMessageIndex]
+        isAnimating = true
+        
+        var deletingIndex = currentMessage.count
+        Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { timer in
+            if deletingIndex > 0 {
+                deletingIndex -= 1
+                displayedText = String(currentMessage.prefix(deletingIndex))
+            } else {
+                timer.invalidate()
+                currentMessageIndex = nextIndex
+                let newMessage = loadingMessages[currentMessageIndex]
+                var typingIndex = 0
+                
+                Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+                    if typingIndex < newMessage.count {
+                        let index = newMessage.index(newMessage.startIndex, offsetBy: typingIndex)
+                        displayedText += String(newMessage[index])
+                        typingIndex += 1
+                    } else {
+                        timer.invalidate()
+                        isAnimating = false
+                    }
+                }
+            }
+        }
+    }
 }

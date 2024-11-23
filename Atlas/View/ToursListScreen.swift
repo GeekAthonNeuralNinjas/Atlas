@@ -1,31 +1,33 @@
 import SwiftUI
+import SwiftData
 import MapKit
 
 struct ToursListScreen: View {
-    @State private var tours: [Tour] = []
+    @Environment(\.modelContext) private var modelContext
+    @Query private var tours: [Tour]
     @State private var isLoading = true
     @State private var errorMessage: String?
-
+    
     var body: some View {
         NavigationStack {
             VStack {
                 if isLoading {
                     ProgressView("Loading trips...")
-                        .navigationTitle("Trips")  // Title when loading
+                        .navigationTitle("Trips")
                 } else if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .padding()
-                        .navigationTitle("Trips")  // Title when there is an error
+                        .navigationTitle("Trips")
                 } else {
                     GeometryReader { proxy in
                         ScrollView {
                             VStack(alignment: .leading) {
-                                ForEach(tours.indices, id: \.self) { index in
+                                ForEach(tours) { tour in
                                     NavigationLink(
-                                        destination: PlacesListScreen(title: tours[index].name)
+                                        destination: PlacesListScreen(title: tour.name, tour: tour)
                                     ) {
-                                        tourCard(tour: tours[index])
+                                        tourCard(tour: tour)
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                 }
@@ -34,23 +36,53 @@ struct ToursListScreen: View {
                             .padding(.horizontal)
                         }
                     }
-                    .navigationTitle("Trips")  // Title when tours are loaded
+                    .navigationTitle("Trips")
                 }
             }
         }
         .onAppear {
-            fetchTours()
-        }
-    }
-
-    private func fetchTours() {
-        DispatchQueue.main.async {
-            tours.append(sampleTour)
+            if tours.isEmpty {
+                addSampleData()
+            }
             isLoading = false
         }
     }
-}
+    
+    private func tourCard(tour: Tour) -> some View {
+        VStack(alignment: .leading) {
+            Text(tour.name)
+                .font(.headline)
+            Text("\(tour.places.count) places")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
+        .cornerRadius(10)
+        .shadow(radius: 2)
+    }
 
-#Preview {
-    ToursListScreen()
+    private func addSampleData() {
+        let samplePlaces = [
+            Place(
+                coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
+                title: "Belém Tower",
+                description: "A 19th-century fortified tower located in Lisbon, Portugal.",
+                isLandmark: true
+            ),
+            Place(
+                coordinate: CLLocationCoordinate2D(latitude: 38.6970, longitude: -9.2033),
+                title: "Pastéis de Belém",
+                description: "The not so original home of Portugal's famous pastéis de nata.",
+                isLandmark: false
+            )
+        ]
+        
+        let tour = Tour(name: "Lisbon also Highlights")
+        tour.places = samplePlaces
+        modelContext.insert(tour)
+        
+        try? modelContext.save()
+    }
 }

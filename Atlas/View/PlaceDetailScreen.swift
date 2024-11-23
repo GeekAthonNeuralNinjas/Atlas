@@ -92,7 +92,7 @@ struct PlaceDetailScreen: View {
                                 NextStopButton(
                                     title: places[currentPlaceIndex + 1].title,
                                     coordinate: places[currentPlaceIndex + 1].coordinate,
-                                    description: places[currentPlaceIndex + 1].description,
+                                    description: places[currentPlaceIndex + 1].text,
                                     isLandmark: places[currentPlaceIndex + 1].isLandmark,
                                     distance: 1000, // Example distance
                                     pitch: places[currentPlaceIndex].isLandmark ? 65 : 0,
@@ -111,7 +111,7 @@ struct PlaceDetailScreen: View {
                                 .transition(.opacity)
                                 .animation(.easeInOut(duration: 0.3), value: currentPlaceIndex)
 
-                            Text(currentPlace.description)
+                            Text(currentPlace.text)
                                 .font(.system(size: 16))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)

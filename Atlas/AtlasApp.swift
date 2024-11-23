@@ -10,9 +10,18 @@ import SwiftData
 
 @main
 struct AtlasApp: App {
+    let container: ModelContainer
+    init() {
+            do {
+                container = try ModelContainer(for: Tour.self, Place.self)
+            } catch {
+                fatalError("Failed to initialize ModelContainer")
+            }
+        }
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(container)
     }
 }

@@ -1,12 +1,13 @@
 import SwiftUI
+import SwiftData
 import MapKit
 
 struct PlacesListScreen: View {
-    @State public var title: String
-    @State private var places: [Place] = []
+    let title: String
+    let tour: Tour
     @State private var isLoading = true
     @State private var errorMessage: String?
-
+    
     var body: some View {
         NavigationStack {
             if isLoading {
@@ -18,43 +19,71 @@ struct PlacesListScreen: View {
                     .padding()
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 10) { // Adjust the spacing here if needed
-                        ForEach(places.indices, id: \.self) { index in
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(Array(tour.places.enumerated()), id: \.element.id) { index, place in
                             NavigationLink(
-                                destination:
-                                    PlaceDetailScreen(
-                                        places: places,
-                                        title: "Places to See",
-                                        placeIndex: index
-                                    )
+                                destination: PlaceDetailScreen(
+                                    places: Array(tour.places),
+                                    title: "Places to See",
+                                    placeIndex: 0
                                 )
-                            {
-                                placeCard(place: places[index])
+                            ) {
+                                placeCard(place: place)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(.horizontal) // Horizontal padding only
+                    .padding(.horizontal)
                 }
                 .navigationTitle(title)
             }
         }
         .onAppear {
-            fetchPlaces()
+            isLoading = false
         }
     }
+    
+    private func placeCard(place: Place) -> some View {
+        VStack(alignment: .leading) {
+            Text(place.title)
+                .font(.headline)
+            Text(place.text)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .lineLimit(2)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
+        .cornerRadius(10)
+        .shadow(radius: 2)
+    }
+}
 
-    private func fetchPlaces() {
-        NetworkManager.shared.fetchPlaces { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                switch result {
-                case .success(let fetchedPlaces):
-                    places = fetchedPlaces
-                case .failure(let error):
-                    errorMessage = "Failed to load places: \(error.localizedDescription)"
-                }
-            }
-        }
-    }
+#Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Tour.self, Place.self, configurations: config)
+    
+    // Add sample data for the preview
+    let samplePlaces = [
+        Place(
+            coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
+            title: "Belém Tower",
+            description: "A 16th-century fortified tower located in Lisbon, Portugal.",
+            isLandmark: true
+        ),
+        Place(
+            coordinate: CLLocationCoordinate2D(latitude: 38.6970, longitude: -9.2033),
+            title: "Pastéis de Belém",
+            description: "The original home of Portugal's famous pastéis de nata.",
+            isLandmark: false
+        )
+    ]
+    
+    let tour = Tour(name: "Lisbon Highlights")
+    tour.places = samplePlaces
+    container.mainContext.insert(tour)
+    
+    return ToursListScreen()
+        .modelContainer(container)
 }
