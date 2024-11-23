@@ -29,12 +29,27 @@
 		16B254F42CF13A97002353B9 /* AtlasUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		16B254D92CF13A96002353B9 /* Atlas */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Atlas;
-			sourceTree = "<group>";
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		16CB79CF2CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Atlas" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				View/TourViewController.swift,
+			);
+			target = 16B254D62CF13A96002353B9 /* Atlas */;
 		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		16CB79D02CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Copy Bundle Resources" phase from "Atlas" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 16B254D52CF13A96002353B9 /* Resources */;
+			membershipExceptions = (
+				View/TourViewController.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
 		16B254ED2CF13A97002353B9 /* AtlasTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = AtlasTests;
@@ -43,6 +58,15 @@
 		16B254F72CF13A97002353B9 /* AtlasUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = AtlasUITests;
+			sourceTree = "<group>";
+		};
+		16B255302CF14392002353B9 /* Atlas */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				16CB79CF2CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Atlas" target */,
+				16CB79D02CF1E42F00584E82 /* Exceptions for "Atlas" folder in "Copy Bundle Resources" phase from "Atlas" target */,
+			);
+			path = Atlas;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,7 +99,7 @@
 		16B254CE2CF13A96002353B9 = {
 			isa = PBXGroup;
 			children = (
-				16B254D92CF13A96002353B9 /* Atlas */,
+				16B255302CF14392002353B9 /* Atlas */,
 				16B254ED2CF13A97002353B9 /* AtlasTests */,
 				16B254F72CF13A97002353B9 /* AtlasUITests */,
 				16B254D82CF13A96002353B9 /* Products */,
@@ -108,7 +132,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				16B254D92CF13A96002353B9 /* Atlas */,
+				16B255302CF14392002353B9 /* Atlas */,
 			);
 			name = Atlas;
 			packageProductDependencies = (
