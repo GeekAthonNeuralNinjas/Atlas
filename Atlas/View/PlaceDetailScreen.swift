@@ -52,9 +52,31 @@ private struct PlaceDetailSheet: View {
                     
                     // Description
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("About")
-                            .font(.title2.bold())
-                            .fontDesign(.rounded)
+                        HStack{
+                            HStack{
+                                //Spark icon
+                                Image(systemName: "sparkles")
+                                    .font(.title2)
+                                    .foregroundStyle(.white)
+                                
+                                Text("About")
+                                    .font(.title2.bold())
+                                    .fontDesign(.rounded)
+                            }
+                            Spacer()
+                                Text("AI Generated")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(.ultraThinMaterial)
+                                    .clipShape(Capsule())
+                                    .overlay(
+                                        Capsule()
+                                            .stroke(.white.opacity(0.2), lineWidth: 1)
+                                    )
+                        }
+
                         
                         Text(place.text)
                             .font(.body)
