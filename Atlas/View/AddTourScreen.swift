@@ -127,6 +127,35 @@ struct AddTourScreen: View {
             }
         }
     }
+    
+    private func startTypewriterAnimation(toIndex nextIndex: Int) {
+        let currentMessage = loadingMessages[currentMessageIndex]
+        isAnimating = true
+        
+        var deletingIndex = currentMessage.count
+        Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { timer in
+            if deletingIndex > 0 {
+                deletingIndex -= 1
+                displayedText = String(currentMessage.prefix(deletingIndex))
+            } else {
+                timer.invalidate()
+                currentMessageIndex = nextIndex
+                let newMessage = loadingMessages[currentMessageIndex]
+                var typingIndex = 0
+                
+                Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+                    if typingIndex < newMessage.count {
+                        let index = newMessage.index(newMessage.startIndex, offsetBy: typingIndex)
+                        displayedText += String(newMessage[index])
+                        typingIndex += 1
+                    } else {
+                        timer.invalidate()
+                        isAnimating = false
+                    }
+                }
+            }
+        }
+    }
 
     private func startLoadingCycle() {
         timer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in

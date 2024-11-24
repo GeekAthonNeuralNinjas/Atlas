@@ -182,7 +182,7 @@ struct PlacesListScreen: View {
                 .cornerRadius(8)
                 .disabled(true)  // Disable map interaction
             VStack(alignment: .leading) {
-                Text(place.title)
+                Text(place.name)
                     .font(.headline)
                     .foregroundStyle(.primary)
                 Text(place.text)
@@ -199,32 +199,4 @@ struct PlacesListScreen: View {
         .background(.ultraThinMaterial)
         .cornerRadius(16)
     }
-}
-
-#Preview {
-    /*let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Tour.self, Place.self, configurations: config)
-    
-    // Add sample data for the preview
-    let samplePlaces = [
-        Place(
-            coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
-            title: "Belém Tower",
-            description: "A 16th-century fortified tower located in Lisbon, Portugal.",
-            isLandmark: true
-        ),
-        Place(
-            coordinate: CLLocationCoordinate2D(latitude: 38.6970, longitude: -9.2033),
-            title: "Pastéis de Belém",
-            description: "The original home of Portugal's famous pastéis de nata.",
-            isLandmark: false
-        )
-    ]
-    
-    let tour = Tour(name: "Lisbon Highlights")
-    tour.places = samplePlaces
-    container.mainContext.insert(tour)
-    
-    return PlacesListScreen(title: "Lisbon Highlights", tour: tour)
-        .modelContainer(container)
 }

@@ -96,7 +96,7 @@ private struct PlaceDetailSheet: View {
                             text: "Directions",
                             gradient: [Color.blue, Color.purple]
                         ) {
-                            openInMaps(coordinate: place.coordinate, name: place.title)
+                            openInMaps(coordinate: place.coordinate, name: place.name)
                         }
                         
                         ActionButton(
@@ -111,7 +111,7 @@ private struct PlaceDetailSheet: View {
                 .padding(24)
             }
             .background(Color(.systemBackground))
-            .navigationTitle(place.title)
+            .navigationTitle(place.name)
             .navigationBarItems(trailing: Button("Done", action: dismissAction))
         }
         .presentationDetents([.large])
@@ -141,9 +141,9 @@ private struct PlaceDetailSheet: View {
     
     private func sharePlace(_ place: Place) {
         let coordinates = "\(place.coordinate.latitude),\(place.coordinate.longitude)"
-        let mapsURL = "http://maps.apple.com/?q=\(place.title)&ll=\(coordinates)"
+        let mapsURL = "http://maps.apple.com/?q=\(place.name)&ll=\(coordinates)"
         let shareText = """
-        Check out \(place.title)!
+        Check out \(place.name)!
         \(place.text)
         
         📍 Location: \(mapsURL)
@@ -251,19 +251,27 @@ private struct PlaceDetailContent: View {
         VStack(spacing: 24) {
             if !isLastPlace, let next = nextPlace {
                 NextStopButton(
-                    title: next.title,
+                    name:next.name,
                     coordinate: next.coordinate,
                     description: next.text,
-                    isLandmark: next.isLandmark,
                     distance: 1000,
-                    pitch: next.isLandmark ? 65 : 0,
-                    heading: 0
+                    pitch: next.isLandmark ? 65 : 0, // Example distance
+                    heading: 0,
+                    arrival: next.arrival, // Example heading
+                    arrivalHour: next.arrivalHour,
+                    city: next.city,
+                    type: next.type,
+                    address: next.address,
+                    reason: next.reason,
+                    website: next.website,
+                    isLandmark: next.isLandmark
                 ) {
+                    // Move to the next landmark
                     goToNext()
                 }
             }
             
-            Text(place.title)
+            Text(place.name)
                 .font(.system(size: 34, weight: .semibold))
                 .fontDesign(.serif)
                 .foregroundColor(.primary)
@@ -304,6 +312,11 @@ struct PlaceDetailScreen: View {
         @State private var lookaroundScene: MKLookAroundScene?
         @State private var showLookAround = false
         @State private var selectedPlace: Place?
+        @State private var isTransitioning = false
+        @State private var transitionDistance: CLLocationDistance = 0
+        @State private var isMapPreloaded = false
+        @State private var route : MKRoute?
+    
 
         private var currentPlace: Place {
             places[currentPlaceIndex]
@@ -648,10 +661,6 @@ struct PlaceDetailScreen: View {
     }
     
     func fetchLookaroundPreview() async {
-        lookaroundScene = nil
-        let lookaroundRequest = MKLookAroundSceneRequest(coordinate: currentPlace.coordinate)
-        lookaroundScene = try? await lookaroundRequest.scene
-    }
         lookaroundScene = nil
         let lookaroundRequest = MKLookAroundSceneRequest(coordinate: currentPlace.coordinate)
         lookaroundScene = try? await lookaroundRequest.scene
