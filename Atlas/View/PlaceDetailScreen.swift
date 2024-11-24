@@ -120,14 +120,6 @@ private struct PlaceDetailSheet: View {
                         ) {
                             openInMaps(coordinate: place.coordinate, name: place.name)
                         }
-                        
-                        ActionButton(
-                            icon: "square.and.arrow.up",
-                            text: "Share",
-                            gradient: [Color.orange, Color.pink]
-                        ) {
-                            sharePlace(place)
-                        }
                     }
                 }
                 .padding(24)
@@ -522,11 +514,6 @@ struct PlaceDetailScreen: View {
                         }
                     }) {
                         Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
-                    }
-                    .foregroundColor(.primary)
-                    
-                    Button(action: {}) {
-                        Image(systemName: "square.and.arrow.up")
                     }
                     .foregroundColor(.primary)
                 }

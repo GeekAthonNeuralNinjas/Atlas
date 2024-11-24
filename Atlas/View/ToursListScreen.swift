@@ -93,6 +93,7 @@ struct ToursListScreen: View {
             }
         }
         .onAppear {
+            resetState()
             if tours.isEmpty {
                 addSampleData()
             }
@@ -100,8 +101,19 @@ struct ToursListScreen: View {
             startTimer()
         }
         .onDisappear {
-            timer?.cancel()
+            cleanupTimer()
         }
+    }
+    
+    private func resetState() {
+        currentLandmarkIndex = 0
+        mapCameraPosition = .automatic
+        cleanupTimer()
+    }
+    
+    private func cleanupTimer() {
+        timer?.cancel()
+        timer = nil
     }
     
     private func tourCard(tour: Tour) -> some View {
@@ -180,6 +192,7 @@ struct ToursListScreen: View {
     }
     
     private func startTimer() {
+        cleanupTimer()  // Ensure any existing timer is cancelled first
         timer = Timer.publish(every: 10, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
