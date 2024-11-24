@@ -26,18 +26,20 @@
 
 <!-- PROJECT LOGO -->
 <br />
+
+  <p align="center">
+    <img src="https://raw.githubusercontent.com/GeekAthonNeuralNinjas/Atlas/ad18f48728c81dee1986d64a210f9b5d405e01b7/Atlas/Assets.xcassets/logo-geekathon.imageset/logo-geekathon.svg" alt="Logo" width="160" height="80">
+
+  </p>
 <div align="center">
   <a href="https://github.com/JoaoFranco03/Foco">
-    <img src="assets/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/GeekAthonNeuralNinjas/Atlas/blob/main/Atlas/Assets.xcassets/app_icon.imageset/app_icon.png?raw=true" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Atlas<h3>
+    <br />
+    <br />
 
-  <p align="center">
-    Geekathon 2024
-    <br />
-    <br />
-  </p>
 </div>
 
 
