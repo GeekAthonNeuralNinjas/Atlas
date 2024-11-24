@@ -67,6 +67,29 @@ This seamless integration between the iOS app and the backend API ensures a user
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## How to Test
+
+To get the Atlas project up and running on your local environment, follow these steps:
+
+1. **Open the Xcode Project**:
+   - Download the repository and open the Xcode solution file (`.xcworkspace` or `.xcodeproj`) using Xcode.
+
+2. **Configure Signing**:
+   - In Xcode, go to the project navigator and select your target (usually named after the app).
+   - Open the **Signing & Capabilities** tab.
+   - Under **Signing**, change the **Bundle Identifier** to a unique one (e.g., `com.yourname.AtlasApp`).
+   - Select your Apple Developer Team if you have one, or configure Xcode to use automatic signing.
+
+3. **Build & Run**:
+   - Connect your iPhone or choose a simulator from Xcode's toolbar.
+   - For best results, use a modern iPhone simulator like iPhone 15 or iPhone 16.
+   - Press the **Run** button (or `Cmd + R`) to build and run the app.
+   - If prompted, trust the app on your iPhone under **Settings > General > Device Management**.
+
+By following these instructions, you should be able to explore and test the functionality of Atlas, including itinerary creation, map navigation, and more.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 
 
 ## Built With
