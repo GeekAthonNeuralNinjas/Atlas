@@ -28,10 +28,25 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		16C16B002CF2CDDD0090C69E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		16B254D72CF13A96002353B9 /* Atlas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atlas.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		16B254EA2CF13A97002353B9 /* AtlasTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		16B254F42CF13A97002353B9 /* AtlasUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		16C16AE72CF2CDDB0090C69E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		16C16AE92CF2CDDB0090C69E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		4CD79E9E2CF27DED0071A89C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4CEA97572CF214340079C7A6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -112,6 +127,7 @@
 				16B255302CF14392002353B9 /* Atlas */,
 				16B254ED2CF13A97002353B9 /* AtlasTests */,
 				16B254F72CF13A97002353B9 /* AtlasUITests */,
+				16C16AE62CF2CDDB0090C69E /* Frameworks */,
 				16B254D82CF13A96002353B9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -126,6 +142,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		16C16AE62CF2CDDB0090C69E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				16C16AE72CF2CDDB0090C69E /* WidgetKit.framework */,
+				16C16AE92CF2CDDB0090C69E /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -136,6 +161,7 @@
 				16B254D32CF13A96002353B9 /* Sources */,
 				16B254D42CF13A96002353B9 /* Frameworks */,
 				16B254D52CF13A96002353B9 /* Resources */,
+				16C16B002CF2CDDD0090C69E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -434,8 +460,11 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Atlas/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Atlas needs your location to show distance to places and provide better recommendations.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Atlas needs your location to show distance to places and provide better recommendations.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access for text input.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition for text input.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -476,8 +505,11 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Atlas/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Atlas needs your location to show distance to places and provide better recommendations.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Atlas needs your location to show distance to places and provide better recommendations.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need microphone access for text input.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition for text input.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

@@ -10,10 +10,11 @@ import SwiftData
 import MapKit
 
 @Model
-final class Tour {
+final class Tour: Identifiable {
     var id: String
     var name: String
     @Relationship(deleteRule: .cascade) var places: [Place]
+    var isFavorite: Bool = false
     
     init(id: String = UUID().uuidString, name: String, places: [Place] = []) {
         self.id = id

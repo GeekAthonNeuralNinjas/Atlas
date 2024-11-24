@@ -1,5 +1,290 @@
 import SwiftUI
 import MapKit
+import CoreLocation
+
+// New helper view for sheet content
+private struct PlaceDetailSheet: View {
+    let place: Place
+    let lookaroundScene: MKLookAroundScene?
+    let dismissAction: () -> Void
+    @State private var weather: String = "22°C Sunny"
+    @State private var openingHours: String = "09:00 - 18:00"
+    @State private var distance: String = "Calculating distance..."
+    @StateObject private var locationManager = LocationManager()
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 32) {
+                    // Info Pills
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            InfoPill(icon: "thermometer.sun", text: weather)
+                            InfoPill(icon: "clock", text: openingHours)
+                            InfoPill(icon: "location", text: distance)
+                            InfoPill(icon: "star.fill", text: "4.8 (2.4k)")
+                        }
+                    }
+                    
+                    if let scene = lookaroundScene {
+                        LookAroundPreview(scene: .constant(scene))
+                            .frame(height: 240)
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .stroke(.white.opacity(0.2), lineWidth: 1)
+                            )
+                            .shadow(color: .black.opacity(0.2), radius: 20)
+                    } else {
+                        //Map
+                        Map(coordinateRegion: .constant(MKCoordinateRegion(
+                            center: place.coordinate,
+                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                        )))
+                        .frame(height: 240)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(.white.opacity(0.2), lineWidth: 1)
+                        )
+                        .shadow(color: .black.opacity(0.2), radius: 20)
+                    }
+                    
+                    // Description
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("About")
+                            .font(.title2.bold())
+                            .fontDesign(.rounded)
+                        
+                        Text(place.text)
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .lineSpacing(4)
+                    }
+                    .frame(maxWidth: .infinity)
+                    //Frosted Glass
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(.white.opacity(0.2), lineWidth: 1)
+                    )
+
+                    if let scene = lookaroundScene {
+                         //Map
+                        Map(coordinateRegion: .constant(MKCoordinateRegion(
+                            center: place.coordinate,
+                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                        )))
+                        .frame(height: 240)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(.white.opacity(0.2), lineWidth: 1)
+                        )
+                        .shadow(color: .black.opacity(0.2), radius: 20)
+                    }
+                    
+                    // Action Buttons Grid
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 16) {
+                        ActionButton(
+                            icon: "car.fill",
+                            text: "Directions",
+                            gradient: [Color.blue, Color.purple]
+                        ) {
+                            openInMaps(coordinate: place.coordinate, name: place.title)
+                        }
+                        
+                        ActionButton(
+                            icon: "square.and.arrow.up",
+                            text: "Share",
+                            gradient: [Color.orange, Color.pink]
+                        ) {
+                            sharePlace(place)
+                        }
+                    }
+                }
+                .padding(24)
+            }
+            .background(Color(.systemBackground))
+            .navigationTitle(place.title)
+            .navigationBarItems(trailing: Button("Done", action: dismissAction))
+        }
+        .presentationDetents([.large])
+        .presentationBackground(.red)
+        .presentationCornerRadius(32)
+        .presentationDragIndicator(.visible)
+        .onAppear {
+            updateDistance()
+        }
+    }
+    
+    private func updateDistance() {
+        guard let userLocation = locationManager.location else { return }
+        let placeLocation = CLLocation(latitude: place.coordinate.latitude, longitude: place.coordinate.longitude)
+        let distanceInMeters = userLocation.distance(from: placeLocation)
+        let distanceInKilometers = distanceInMeters / 1000
+        distance = String(format: "%.2f km away", distanceInKilometers)
+    }
+    
+    private func openInMaps(coordinate: CLLocationCoordinate2D, name: String) {
+        let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
+        mapItem.name = name
+        mapItem.openInMaps(launchOptions: [
+            MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+        ])
+    }
+    
+    private func sharePlace(_ place: Place) {
+        let coordinates = "\(place.coordinate.latitude),\(place.coordinate.longitude)"
+        let mapsURL = "http://maps.apple.com/?q=\(place.title)&ll=\(coordinates)"
+        let shareText = """
+        Check out \(place.title)!
+        \(place.text)
+        
+        📍 Location: \(mapsURL)
+        """
+        
+        let activityController = UIActivityViewController(
+            activityItems: [shareText],
+            applicationActivities: nil
+        )
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            rootVC.present(activityController, animated: true)
+        }
+    }
+}
+
+// Location Manager to get user's current location
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    @Published var location: CLLocation?
+    
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        location = locations.first
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Failed to get user location: \(error.localizedDescription)")
+    }
+}
+
+// Helper Views for PlaceDetailSheet
+private struct InfoPill: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text(text)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(.white.opacity(0.2), lineWidth: 1)
+        )
+    }
+}
+
+private struct ActionButton: View {
+    let icon: String
+    let text: String
+    let gradient: [Color]
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                Text(text)
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .opacity(0.1)
+            )
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(.white.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .tint(.primary)
+    }
+}
+
+// New helper view for main content
+private struct PlaceDetailContent: View {
+    let place: Place
+    let isLastPlace: Bool
+    let nextPlace: Place?
+    let goToNext: () -> Void
+    let showSheet: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            if !isLastPlace, let next = nextPlace {
+                NextStopButton(
+                    title: next.title,
+                    coordinate: next.coordinate,
+                    description: next.text,
+                    isLandmark: next.isLandmark,
+                    distance: 1000,
+                    pitch: next.isLandmark ? 65 : 0,
+                    heading: 0
+                ) {
+                    goToNext()
+                }
+            }
+            
+            Text(place.title)
+                .font(.system(size: 34, weight: .semibold))
+                .fontDesign(.serif)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .transition(.opacity)
+            
+            Text(place.text)
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+                .transition(.opacity)
+            
+            PillShapedIconTextButton(
+                text: "Explore",
+                sfSymbol: "safari.fill",
+                action: showSheet
+            )
+        }
+    }
+}
 
 struct PlaceDetailScreen: View {
     @Environment(\.presentationMode) var presentationMode
@@ -17,20 +302,25 @@ struct PlaceDetailScreen: View {
     @State private var rotationTimer: Timer?
     @State private var lookaroundScene: MKLookAroundScene?
     @State private var showLookAround = false
-
+    @State private var isTransitioning = false
+    @State private var transitionDistance: CLLocationDistance = 0
+    @State private var isMapPreloaded = false
+    @State private var route: MKRoute?
+    
     // Computed property to get the current place
     private var currentPlace: Place {
         places[currentPlaceIndex]
     }
-
+    
     init(places: [Place], distance: CLLocationDistance = 500, title: String, placeIndex: Int = 0) {
         _places = State(initialValue: places)
         _distance = State(initialValue: distance)
         _title = State(initialValue: title)
         _isDarkMode = State(initialValue: UITraitCollection.current.userInterfaceStyle == .dark)
         _currentPlaceIndex = State(initialValue: placeIndex)
+        preloadMap(for: places[placeIndex])
     }
-
+    
     var body: some View {
         NavigationStack {
             GeometryReader { proxy in
@@ -40,100 +330,67 @@ struct PlaceDetailScreen: View {
                         selection: .constant(nil)) {
                         // Add markers for non-landmark places
                         ForEach(places.indices, id: \.self) { index in
-                            if !places[index].isLandmark {
+                            if (!places[index].isLandmark) {
                                 Marker(places[index].title, coordinate: places[index].coordinate)
                                     .tint(.red)
                             }
                         }
+                        // Draw the route if available
+                        if let route = route {
+                            MapPolyline(route.polyline)
+                                .stroke(Color.red, lineWidth: 5)
+                        }
                     }
-                    .onAppear {
-                        // Use a higher pitch for landmarks, lower pitch for non-landmarks
-                        let initialPitch: CLLocationDegrees = currentPlace.isLandmark ? 65 : 0
-
-                        // Initialize map camera with appropriate pitch for the first place
-                        position = .camera(
-                            MapCamera(
-                                centerCoordinate: currentPlace.coordinate,
-                                distance: distance,
-                                heading: heading,
-                                pitch: initialPitch
+                        .onAppear {
+                            if (!isMapPreloaded) {
+                                // Use a higher pitch for landmarks, lower pitch for non-landmarks
+                                let initialPitch: CLLocationDegrees = currentPlace.isLandmark ? 65 : 0
+                                
+                                position = .camera(
+                                    MapCamera(
+                                        centerCoordinate: currentPlace.coordinate,
+                                        distance: distance,
+                                        heading: heading,
+                                        pitch: initialPitch
+                                    )
+                                )
+                                updateMapCamera(for: currentPlace)
+                                isMapPreloaded = true
+                            }
+                            calculateRoute()
+                        }
+                        .task {
+                            await fetchLookaroundPreview()
+                        }
+                        .mapStyle(
+                            .standard(
+                                elevation: .realistic,
+                                pointsOfInterest: .excludingAll,
+                                showsTraffic: false
                             )
                         )
-
-                        updateMapCamera(for: currentPlace)
-                    }
-                    .task {
-                        await fetchLookaroundPreview()
-                    }
-                    .mapStyle(
-                        .standard(
-                            elevation: .realistic,
-                            pointsOfInterest: .excludingAll,
-                            showsTraffic: false
-                        )
-                    )
-                    .mapControls {
-                        // Empty to disable compass while maintaining interactions
-                    }
-                    .ignoresSafeArea()
-
+                        .mapControls {
+                            // Empty to disable compass while maintaining interactions
+                        }
+                        .ignoresSafeArea()
+                    
                     VStack {
                         VariableBlurView(maxBlurRadius: 20, direction: .blurredTopClearBottom)
                             .frame(height: proxy.safeAreaInsets.top)
                             .ignoresSafeArea()
                         Spacer()
                     }
-
+                    
                     VStack {
                         Spacer()
-                        VStack(spacing: 24) {
-                            if currentPlaceIndex < places.count - 1 {
-                                // Show the NextStopButton if there's a next landmark
-                                NextStopButton(
-                                    title: places[currentPlaceIndex + 1].title,
-                                    coordinate: places[currentPlaceIndex + 1].coordinate,
-                                    description: places[currentPlaceIndex + 1].text,
-                                    isLandmark: places[currentPlaceIndex + 1].isLandmark,
-                                    distance: 1000, // Example distance
-                                    pitch: places[currentPlaceIndex].isLandmark ? 65 : 0,
-                                    heading: 0 // Example heading
-                                ) {
-                                    // Move to the next landmark
-                                    goToNextLandmark()
-                                }
-                            }
-
-                            Text(currentPlace.title)
-                                .font(.system(size: 34, weight: .semibold))
-                                .fontDesign(.serif)
-                                .foregroundColor(.primary)
-                                .multilineTextAlignment(.center)
-                                .transition(.opacity)
-                                .animation(.easeInOut(duration: 0.3), value: currentPlaceIndex)
-
-                            Text(currentPlace.text)
-                                .font(.system(size: 16))
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                                .transition(.opacity)
-                                .animation(.easeInOut(duration: 0.3), value: currentPlaceIndex)
-                            
-                            PillShapedIconTextButton(
-                                text: "Explore",
-                                sfSymbol: "safari.fill"
-                            ) {
-                                // Your action here, e.g., toggling a sheet
-                                showUnlockSheet.toggle()
-                            }
-                            .sheet(isPresented: $showUnlockSheet) {
-                                VStack {
-                                    Text("Unlock Features")
-                                }
-                                .presentationBackground(.regularMaterial)
-                            }
-                        }
-                        .padding(.bottom, 120)
+                        PlaceDetailContent(
+                            place: currentPlace,
+                            isLastPlace: currentPlaceIndex >= places.count - 1,
+                            nextPlace: currentPlaceIndex < places.count - 1 ? places[currentPlaceIndex + 1] : nil,
+                            goToNext: goToNextLandmark,
+                            showSheet: { showUnlockSheet.toggle() }
+                        )
+                        .padding(.bottom, 80)
                         .background(
                             LinearGradient(
                                 gradient: Gradient(colors: [
@@ -152,6 +409,13 @@ struct PlaceDetailScreen: View {
                         )
                     }
                     .ignoresSafeArea()
+                }
+                .sheet(isPresented: $showUnlockSheet) {
+                    PlaceDetailSheet(
+                        place: currentPlace,
+                        lookaroundScene: lookaroundScene,
+                        dismissAction: { showUnlockSheet.toggle() }
+                    )
                 }
                 .toolbarBackground(.hidden, for: .navigationBar)
             }
@@ -180,7 +444,7 @@ struct PlaceDetailScreen: View {
                         Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
                     }
                     .foregroundColor(.primary)
-
+                    
                     Button(action: {}) {
                         Image(systemName: "square.and.arrow.up")
                     }
@@ -195,27 +459,74 @@ struct PlaceDetailScreen: View {
             rotationTimer = nil
         }
     }
-
+    
+    private func preloadMap(for place: Place) {
+        let options = MKMapSnapshotter.Options()
+        options.region = MKCoordinateRegion(
+            center: place.coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+        )
+        options.size = CGSize(width: 1, height: 1) // Minimal size to preload tiles
+        
+        let snapshotter = MKMapSnapshotter(options: options)
+        snapshotter.start { _, _ in
+            // Map tiles are now cached
+            isMapPreloaded = true
+        }
+    }
+    
     private func updateMapCamera(for landmark: Place) {
         // Cancel any existing timer
         rotationTimer?.invalidate()
         
-        // Use a higher pitch for landmarks, lower pitch for non-landmarks
-        let targetPitch: CLLocationDegrees = landmark.isLandmark ? 65 : 0  // Adjust the pitch values to your preference
-        
-        // First move to location with animation
-        withAnimation(.easeInOut(duration: 2.0)) {
-            position = .camera(
-                MapCamera(
-                    centerCoordinate: landmark.coordinate,
-                    distance: distance,
-                    heading: heading,
-                    pitch: targetPitch  // Use the adjusted pitch
+        if isTransitioning {
+            // Show aerial view during transition
+            withAnimation(.easeInOut(duration: 2.0)) {
+                position = .camera(
+                    MapCamera(
+                        centerCoordinate: midpointBetween(
+                            currentPlace.coordinate,
+                            places[currentPlaceIndex - 1].coordinate
+                        ),
+                        distance: max(transitionDistance * 1.5, 2000), // Ensure we're high enough
+                        heading: heading,
+                        pitch: 0 // Aerial view
+                    )
                 )
-            )
+            }
+            
+            // After showing distance, animate to destination
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                withAnimation(.easeInOut(duration: 2.0)) {
+                    position = .camera(
+                        MapCamera(
+                            centerCoordinate: landmark.coordinate,
+                            distance: distance,
+                            heading: heading,
+                            pitch: landmark.isLandmark ? 65 : 0
+                        )
+                    )
+                }
+                isTransitioning = false
+                startRotation()
+            }
+        } else {
+            // Normal camera update without transition
+            withAnimation(.easeInOut(duration: 2.0)) {
+                position = .camera(
+                    MapCamera(
+                        centerCoordinate: landmark.coordinate,
+                        distance: distance,
+                        heading: heading,
+                        pitch: landmark.isLandmark ? 65 : 0
+                    )
+                )
+            }
+            startRotation()
         }
-        
-        // Start panning after the initial animation completes
+    }
+    
+    private func startRotation() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.1) {
             rotationTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [self] timer in
                 heading += rotationSpeed
@@ -228,31 +539,76 @@ struct PlaceDetailScreen: View {
                         centerCoordinate: currentPlace.coordinate,
                         distance: distance,
                         heading: heading,
-                        pitch: targetPitch  // Keep the same pitch during rotation
+                        pitch: currentPlace.isLandmark ? 65 : 0
                     )
                 )
             }
         }
     }
-
+    
     private func goToNextLandmark() {
         if currentPlaceIndex < places.count - 1 {
+            isTransitioning = true
+            transitionDistance = calculateDistance(
+                from: currentPlace.coordinate,
+                to: places[currentPlaceIndex + 1].coordinate
+            )
+            
             withAnimation(.easeInOut(duration: 0.3)) {
                 currentPlaceIndex += 1
             }
             updateMapCamera(for: currentPlace)
-            // Add Task to fetch new preview
+            calculateRoute()
             Task {
                 await fetchLookaroundPreview()
             }
         }
     }
     
-    func fetchLookaroundPreview() async {
-            lookaroundScene = nil
-            let lookaroundRequest = MKLookAroundSceneRequest(coordinate: currentPlace.coordinate)
-            lookaroundScene = try? await lookaroundRequest.scene
+    private func calculateRoute() {
+        guard currentPlaceIndex < places.count - 1 else { return }
+        let request = MKDirections.Request()
+        request.source = MKMapItem(placemark: MKPlacemark(coordinate: currentPlace.coordinate))
+        request.destination = MKMapItem(placemark: MKPlacemark(coordinate: places[currentPlaceIndex + 1].coordinate))
+        request.transportType = .automobile
+
+        let directions = MKDirections(request: request)
+        directions.calculate { response, error in
+            guard let route = response?.routes.first else { return }
+            self.route = route
         }
+    }
+    
+    private func calculateDistance(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> CLLocationDistance {
+        let fromLocation = CLLocation(latitude: from.latitude, longitude: from.longitude)
+        let toLocation = CLLocation(latitude: to.latitude, longitude: to.longitude)
+        return fromLocation.distance(from: toLocation)
+    }
+    
+    private func midpointBetween(_ coord1: CLLocationCoordinate2D, _ coord2: CLLocationCoordinate2D) -> CLLocationCoordinate2D {
+        let lat1 = coord1.latitude * .pi / 180
+        let lon1 = coord1.longitude * .pi / 180
+        let lat2 = coord2.latitude * .pi / 180
+        let lon2 = coord2.longitude * .pi / 180
+        
+        let bx = cos(lat2) * cos(lon2 - lon1)
+        let by = cos(lat2) * sin(lon2 - lon1)
+        
+        let lat3 = atan2(sin(lat1) + sin(lat2),
+                        sqrt((cos(lat1) + bx) * (cos(lat1) + bx) + by * by))
+        let lon3 = lon1 + atan2(by, cos(lat1) + bx)
+        
+        return CLLocationCoordinate2D(
+            latitude: lat3 * 180 / .pi,
+            longitude: lon3 * 180 / .pi
+        )
+    }
+    
+    func fetchLookaroundPreview() async {
+        lookaroundScene = nil
+        let lookaroundRequest = MKLookAroundSceneRequest(coordinate: currentPlace.coordinate)
+        lookaroundScene = try? await lookaroundRequest.scene
+    }
 }
 
 #Preview {
