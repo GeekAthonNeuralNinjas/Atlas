@@ -46,7 +46,7 @@
 # About The Project
 
 [![Product Name Screen Shot][product-screenshot]](https://github.com/JoaoFranco03/Foco)
-This project is an innovative tour planning system, comprising an interactive iOS app and a Flask API, leveraging the power of Amazon Bedrock from AWS and the Google Places API.
+This project is an innovative tour planning system, comprising an interactive iOS app and a Flask API, leveraging the power of Gemini and API's such as the Google Places API and the OpenWeatherMap API.
 
 # Problem Addressed
 
@@ -56,8 +56,10 @@ Planning vacations or activities in an unfamiliar city can be a daunting and tim
 Our solution aims to simplify and enhance the travel planning experience. With our Atlas app, users can:
 
 1. **Specify Their Preferences**: Set the city they want to visit, the number of days available, and other travel preferences through an intuitive app interface.
-2. **Automated Itinerary Generation**: The Flask API, powered by Amazon Bedrock’s RAG (Retrieval-Augmented Generation) capabilities and Google Places API, processes the user’s inputs to create a personalized and optimized activity plan.
+2. **Automated Itinerary Generation**: The Flask API, powered by Gemini capabilities, processes the user’s inputs to create a personalized and optimized activity plan, based on API Data and User Needs for his context, giving it a sense of grounding, reducing hallucinations and inacurrate data.
 3. **Detailed Guided Tours**: Once a tour is generated, users can view their itinerary with detailed activity descriptions, organized by dates, and explore the city using an interactive guided map.
+4. **Explore Landmarks in 3D**: Dive deeper into your destination with 3D models of iconic landmarks, offering an immersive way to preview and explore famous attractions before even arriving.
+
 
 This seamless integration between the iOS app and the backend API ensures a user-friendly experience while delivering intelligent and practical solutions for travel planning.
 
@@ -69,6 +71,12 @@ This seamless integration between the iOS app and the backend API ensures a user
 
 * [![Swift][Swift.org]][Swift-url]
 * [![Xcode][xcode-shield]][xcode-url]
+* [![Flask][flask-shield]][flask-url]
+* [![Python][python-shield]][python-url]
+* [![iOS][ios-shield]][ios-url]
+* [![Google Places API][googleplaces-shield]][googleplaces-url]
+* [![OpenWeatherMap API][openweathermap-shield]][openweathermap-url]
+* [![Gemini][gemini-shield]][gemini-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -121,3 +129,16 @@ Project Link: [https://github.com/JoaoFranco03/Foco](https://github.com/JoaoFran
 [product-screenshot]: assets/Mockup.png
 [Swift.org]: https://img.shields.io/badge/Swift-FA7343?style=for-the-badge&logo=swift&logoColor=white
 [Swift-url]: https://www.swift.org
+<!-- MARKDOWN LINKS & IMAGES -->
+[flask-shield]: https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white
+[flask-url]: https://flask.palletsprojects.com/
+[ios-shield]: https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=apple&logoColor=white
+[ios-url]: https://developer.apple.com/ios/
+[googleplaces-shield]: https://img.shields.io/badge/Google%20Places%20API-4285F4?style=for-the-badge&logo=google&logoColor=white
+[googleplaces-url]: https://developers.google.com/maps/documentation/places
+[openweathermap-shield]: https://img.shields.io/badge/OpenWeatherMap-FF5733?style=for-the-badge&logo=openweathermap&logoColor=white
+[openweathermap-url]: https://openweathermap.org/api
+[gemini-shield]: https://img.shields.io/badge/Gemini-FF9900?style=for-the-badge&logo=gemini&logoColor=white
+[gemini-url]: https://aws.amazon.com/bedrock/
+[python-shield]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
+[python-url]: https://www.python.org/
