@@ -462,9 +462,11 @@ struct PlaceDetailScreen: View {
                                 showUnlockSheet.toggle()
                             }
                             .sheet(isPresented: $showUnlockSheet) {
-                                VStack {
-                                    Text("Unlock Features")
-                                }
+                                PlaceDetailSheet(
+                                    place: currentPlace,
+                                    lookaroundScene: lookaroundScene,
+                                    dismissAction: { showUnlockSheet.toggle() }
+                                )
                                 .presentationBackground(.regularMaterial)
                             }
                         }
