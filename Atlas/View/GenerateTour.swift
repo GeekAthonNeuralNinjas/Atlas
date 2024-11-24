@@ -1,19 +1,37 @@
-import SwiftUI
+/*import SwiftUI
 import MapKit
 import SwiftData
-/*
+
 // MARK: - Models
 struct TourAPIResponse: Decodable {
+    let name: String
     let places: [PlaceAPIData]
 }
 
 struct PlaceAPIData: Decodable {
+    let arrival: String
+    let arrival_hour: String
     let city: String
-    let coordinates: [String]
+    let coordinates: Coordinates
     let description: String
+    let name: String
+    let type: String
+    let adress: String
+    let duration: String
     let isLandmark: Bool
     let reason: String
-    let title: String
+}
+
+struct Coordinates: Decodable {
+    let lat: String
+    let log: String
+}
+
+struct TourPrompt: Encodable {
+    let city: String
+    let start_date: String
+    let duration: Int
+    let flavour: String
 }
 
 // MARK: - Network Service
@@ -21,12 +39,17 @@ class TourAPIService {
     static let shared = TourAPIService()
     private init() {}
     
-    func generateTour(prompt: String) async throws -> TourAPIResponse {
+    func generateTour(prompt: TourPrompt) async throws -> TourAPIResponse {
         guard let url = URL(string: "https://atlas-api-service.xb8vmgez1emgp.us-west-2.cs.amazonlightsail.com/plan") else {
             throw URLError(.badURL)
         }
         
-        let (data, _) = try await URLSession.shared.data(from: url)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(prompt)
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONDecoder().decode(TourAPIResponse.self, from: data)
     }
 }
@@ -78,27 +101,37 @@ struct GenerateTour: View {
     
     // MARK: - Helper Functions
     private func createTour(from response: TourAPIResponse) -> Tour {
-        let tour = Tour(name: "Lisbon adventures")
+            let tour = Tour(name: response.name)
+            
+            let places = response.places.map { placeData in
+                let latitude = Double(placeData.coordinates.lat.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+                let longitude = Double(placeData.coordinates.log.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+                
+                return Place(
+                    coordinate: CLLocationCoordinate2D(
+                        latitude: latitude,
+                        longitude: longitude
+                    ),
+                    title: placeData.name,
+                    description: placeData.description,
+                    isLandmark: placeData.isLandmark,
+                    arrival: DateFormatter().date(from: placeData.arrival) ?? Date(),
+                    arrivalHour: placeData.arrival_hour,
+                    city: placeData.city,
+                    type: placeData.type,
+                    address: placeData.adress,
+                    duration: placeData.duration,
+                    reason: placeData.reason
+                )
+            }
+            
+            tour.places = places
+            modelContext.insert(tour)
         
-        let places = response.places.map { placeData in
-            Place(
-                coordinate: CLLocationCoordinate2D(
-                    latitude: Double(placeData.coordinates[0]) ?? 0,
-                    longitude: Double(placeData.coordinates[1]) ?? 0
-                ),
-                title: placeData.title,
-                description: placeData.description,
-                isLandmark: placeData.isLandmark
-            )
+            // Save the context
+            try? modelContext.save()
+            return tour
         }
-        
-        tour.places = places
-        modelContext.insert(tour)
-        
-        // Save the context
-        try? modelContext.save()
-        return tour
-    }
     
     private func handleSendButton() {
         Task {
@@ -106,6 +139,9 @@ struct GenerateTour: View {
                 withAnimation(.easeInOut(duration: 0.9)) {
                     state = .thinking
                 }
+                
+                let prompt = TourPrompt(city: "Leiria", start_date: "24/12/24", duration: 2, flavour: "fun")
+                print("Prompt: \(prompt)")
                 
                 let response = try await TourAPIService.shared.generateTour(prompt: prompt)
                 let tour = createTour(from: response)
@@ -117,7 +153,7 @@ struct GenerateTour: View {
                 }
                 
                 // Clear the prompt
-                prompt = ""
+                self.prompt = ""
             } catch {
                 showError = true
                 errorMessage = error.localizedDescription
@@ -334,4 +370,5 @@ struct GenerateTour: View {
             }
         }
     }
-}*/
+}
+*/

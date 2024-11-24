@@ -1,35 +1,42 @@
-//
-//  NextStopButton.swift
-//  Atlas
-//
-//  Created by João Franco on 23/11/2024.
-//
-
 import SwiftUI
 import MapKit
 import CoreLocation
 
 struct NextStopButton: View {
     // MARK: - Properties
-    var title: String
+    var name: String
     var coordinate: CLLocationCoordinate2D
     var description: String
-    var isLandmark: Bool
     var distance: CLLocationDistance
     var pitch: CGFloat
     var heading: CLLocationDirection
+    var arrival: Date
+    var arrivalHour: String
+    var city: String
+    var type: String
+    var address: String?
+    var reason: String
+    var website: String?
+    var isLandmark: Bool
     
     // A callback closure to handle actions like updating state or camera position
     var onTap: (() -> Void)?
-
+    
     // MARK: - Body
     var body: some View {
         Button(action: {
             // Action to perform when button is tapped
             let nextStop = Place(
                 coordinate: coordinate,
-                title: title,
+                name: name,
                 description: description,
+                arrival: arrival,
+                arrivalHour: arrivalHour,
+                city: city,
+                type: type,
+                address: address,
+                reason: reason,
+                website: website,
                 isLandmark: isLandmark
             )
             
@@ -46,15 +53,12 @@ struct NextStopButton: View {
                     // Position update logic goes here, if necessary
                     onTap?()
                 }
-                
-                // Additional landmark update logic if needed
-                // landmark = nextStop (Assuming you have this available in context)
             }
         }) {
             HStack {
                 Image(systemName: "arrow.right.circle.fill")
                     .font(.system(size: 12))
-                Text("Next Stop: \(title)")
+                Text("Next Stop: \(name)")
                     .font(.system(size: 14))
             }
             .foregroundStyle(Color.primary)
@@ -75,13 +79,20 @@ struct NextStopButton: View {
 // MARK: - Preview
 #Preview {
     NextStopButton(
-        title: "Arc de Triomphe",
+        name: "Arc de Triomphe",
         coordinate: CLLocationCoordinate2D(latitude: 48.8738, longitude: 2.2950),
         description: "The Arc de Triomphe is one of the most famous monuments in Paris, standing at the western end of the Champs-Élysées. It honors those who fought and died for France in the French Revolutionary and Napoleonic Wars.",
-        isLandmark: true,
         distance: 1000, // Example distance
         pitch: 65, // Example pitch
-        heading: 0 // Example heading
+        heading: 0, // Example heading
+        arrival: DateFormatter().date(from: "25/11/2024") ?? Date(),
+        arrivalHour: "14:00",
+        city: "Paris",
+        type: "Landmark",
+        address: "Place Charles de Gaulle, 75008 Paris, France",
+        reason: "Iconic landmark with historical significance",
+        website: "https://example.com/arc-de-triomphe",
+        isLandmark: false
     ) {
         // Example onTap action
         print("Next Stop tapped!")

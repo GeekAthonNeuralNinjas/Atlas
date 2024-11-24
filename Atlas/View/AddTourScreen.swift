@@ -2,31 +2,67 @@ import SwiftUI
 import MapKit
 import SwiftData
 
-// MARK: - Models
 struct TourAPIResponse: Decodable {
+    let description: String
+    let name: String
     let places: [PlaceAPIData]
 }
 
 struct PlaceAPIData: Decodable {
+    let arrival: String
+    let arrival_hour: String
     let city: String
-    let coordinates: [String]
+    let coordinates: Coordinates
     let description: String
-    let isLandmark: Bool
+    let name: String
+    let type: String
+    let adress: String?
     let reason: String
-    let title: String
+    let website: String?
+    let isLandmark: Bool
 }
 
-// MARK: - Network Service
+struct Coordinates: Decodable {
+    let lat: Double
+    let log: Double
+}
+
+struct TourPrompt: Encodable {
+    let city: String
+    let start_date: String
+    let duration: Int
+    let flavour: String
+}
+
 class TourAPIService {
     static let shared = TourAPIService()
     private init() {}
     
-    func generateTour(prompt: String) async throws -> TourAPIResponse {
-        guard let url = URL(string: "https://atlas-api-service.xb8vmgez1emgp.us-west-2.cs.amazonlightsail.com/plan") else {
+    func generateTour(prompt: TourPrompt) async throws -> TourAPIResponse {
+        var components = URLComponents(string: "https://atlas-api-service.xb8vmgez1emgp.us-west-2.cs.amazonlightsail.com/plan")!
+        components.queryItems = [
+            URLQueryItem(name: "city", value: prompt.city),
+            URLQueryItem(name: "start_date", value: prompt.start_date),
+            URLQueryItem(name: "duration", value: String(prompt.duration)),
+            URLQueryItem(name: "flavour", value: prompt.flavour)
+        ]
+        
+        guard let url = components.url else {
             throw URLError(.badURL)
         }
         
-        let (data, _) = try await URLSession.shared.data(from: url)
+        // Print the complete URL
+        print("Making request to URL: \(url.absoluteString)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("Raw JSON response:")
+            print(jsonString)
+        }
         return try JSONDecoder().decode(TourAPIResponse.self, from: data)
     }
 }
@@ -36,6 +72,7 @@ struct AddTourScreen: View {
         case none
         case thinking
     }
+    
     @State private var days = 1
     @State private var currentStep = 1
     @State private var selectedCity: City?
@@ -49,11 +86,6 @@ struct AddTourScreen: View {
     @State private var state: AtlasState = .none
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var displayedText = ""
-    @State private var currentMessageIndex = 0
-    @State private var isAnimating = false
-    @State private var maskTimer: Float = 0.0
-    @State private var timer: Timer?
     
     @Environment(\.modelContext) private var modelContext
     
@@ -79,19 +111,6 @@ struct AddTourScreen: View {
                       colors: [.pink, .purple])
     ]
     
-    private let loadingMessages = [
-        "Fasten your seatbelt, we're checking your trip details!",
-        "Locating you... Are you at the beach or in the mountains?",
-        "Clouds are in the forecast... or maybe a trip?",
-        "Your trip is coming... Hold tight!",
-        "Are we there yet? Just kidding, still loading.",
-        "Fetching the perfect vacation weather (crossing our fingers)!",
-        "Your adventure is almost ready, just need to check the clouds.",
-        "Gathering your luggage... virtual luggage, of course.",
-        "Hope you packed sunscreen... loading your trip info!",
-        "Making sure the clouds are clear for takeoff!"
-    ]
-    
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
@@ -111,8 +130,16 @@ struct AddTourScreen: View {
                     vacationStyles: vacationStyles
                 )
                 
-                NavigationButtons(handleFinishButton: handleFinishButton, currentStep: $currentStep)
-                    .padding()
+                Button(action: handleFinishButton) {
+                    Text(currentStep < 4 ? "Next" : "Finish")
+                        .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding()
             }
             .navigationBarTitleDisplayMode(.inline)
             .background(
@@ -126,109 +153,126 @@ struct AddTourScreen: View {
                 }
             }
         }
+        .alert(isPresented: $showError) {
+            Alert(title: Text("Error"), message: Text(errorMessage), dismissButton: .default(Text("OK")))
+        }
     }
     
-    public func handleFinishButton() {
+    private func handleFinishButton() {
         if currentStep < 4 {
             withAnimation(.spring()) {
                 currentStep += 1
             }
         } else {
-            Task {
-                do {
-                    withAnimation(.easeInOut(duration: 0.9)) {
-                        state = .thinking
-                    }
-                    
-                    let response = try await TourAPIService.shared.generateTour(prompt: "Generate tour for \(selectedCity?.name ?? "") with style \(selectedStyle?.name ?? "") for \(days) days starting from \(startDate)")
-                    let tour = createTour(from: response)
-                    createdTour = tour
-                    
-                    withAnimation(.easeInOut(duration: 0.9)) {
-                        state = .none
-                        navigateToPlaceDetail = true
-                    }
-                } catch {
-                    showError = true
-                    errorMessage = error.localizedDescription
-                    
-                    withAnimation(.easeInOut(duration: 0.9)) {
-                        state = .none
-                    }
+            handleSendButton()
+        }
+    }
+    
+    private func handleSendButton() {
+        Task {
+            do {
+                withAnimation(.easeInOut(duration: 0.9)) {
+                    state = .thinking
+                }
+                
+                // Create the TourPrompt
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "dd/MM/yy"
+                let formattedStartDate = dateFormatter.string(from: startDate)
+                
+                let prompt = TourPrompt(
+                    city: selectedCity?.name ?? "",
+                    start_date: formattedStartDate,
+                    duration: days,
+                    flavour: selectedStyle?.name ?? ""
+                )
+                
+                // Print the prompt structure
+                print("Prompt: \(prompt)")
+                
+                // Make the HTTP request
+                let response = try await TourAPIService.shared.generateTour(prompt: prompt)
+                let tour = createTour(from: response)
+                createdTour = tour
+                
+                withAnimation(.easeInOut(duration: 0.9)) {
+                    state = .none
+                    navigateToPlaceDetail = true
+                }
+            } catch {
+                showError = true
+                errorMessage = error.localizedDescription
+                
+                withAnimation(.easeInOut(duration: 0.9)) {
+                    state = .none
                 }
             }
         }
     }
     
     private func createTour(from response: TourAPIResponse) -> Tour {
-        let tour = Tour(name: "Lisbon adventures")
-        
-        let places = response.places.map { placeData in
-            Place(
-                coordinate: CLLocationCoordinate2D(
-                    latitude: Double(placeData.coordinates[0]) ?? 0,
-                    longitude: Double(placeData.coordinates[1]) ?? 0
-                ),
-                title: placeData.title,
-                description: placeData.description,
-                isLandmark: placeData.isLandmark
+            let tour = Tour(
+                name: response.name,
+                text: response.description
             )
-        }
-        
-        tour.places = places
-        modelContext.insert(tour)
-        
-        // Save the context
-        try? modelContext.save()
-        return tour
-    }
-    
-    private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
-            DispatchQueue.main.async {
-                maskTimer += 0.03
-            }
-        }
-    }
-    
-    private func startLoadingCycle() {
-        timer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
-            startTypewriterAnimation(toIndex: (currentMessageIndex + 1) % loadingMessages.count)
-        }
-        startTypewriterAnimation(toIndex: currentMessageIndex)
-    }
-    
-    private func startTypewriterAnimation(toIndex nextIndex: Int) {
-        let currentMessage = loadingMessages[currentMessageIndex]
-        isAnimating = true
-        
-        var deletingIndex = currentMessage.count
-        Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { timer in
-            if deletingIndex > 0 {
-                deletingIndex -= 1
-                displayedText = String(currentMessage.prefix(deletingIndex))
-            } else {
-                timer.invalidate()
-                currentMessageIndex = nextIndex
-                let newMessage = loadingMessages[currentMessageIndex]
-                var typingIndex = 0
+            
+            let places = response.places.map { placeData in
+                let coordinate = CLLocationCoordinate2D(
+                    latitude: placeData.coordinates.lat,
+                    longitude: placeData.coordinates.log
+                )
                 
-                Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
-                    if typingIndex < newMessage.count {
-                        let index = newMessage.index(newMessage.startIndex, offsetBy: typingIndex)
-                        displayedText += String(newMessage[index])
-                        typingIndex += 1
-                    } else {
-                        timer.invalidate()
-                        isAnimating = false
-                    }
-                }
+                // Convert arrival string to Date
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "dd/MM/yy"
+                let arrivalDate = dateFormatter.date(from: placeData.arrival) ?? Date()
+                
+                return Place(
+                    coordinate: coordinate,
+                    name: placeData.name,
+                    description: placeData.description,
+                    arrival: arrivalDate,
+                    arrivalHour: placeData.arrival_hour,
+                    city: placeData.city,
+                    type: placeData.type,
+                    address: placeData.adress,
+                    reason: placeData.reason,
+                    website: placeData.website,
+                    isLandmark: placeData.isLandmark
+                )
             }
+            
+            tour.places = places
+            modelContext.insert(tour)
+            try? modelContext.save()
+            return tour
         }
-    }
+
+
+
 }
 
-
 #Preview {
-    AddTourScreen()
+    /*AddTourScreen(
+        predefinedCities: [
+            City(name: "Lisbon", country: "Portugal", imageName: "lisbon"),
+            City(name: "Leiria", country: "Portugal", imageName: "leiria"),
+            City(name: "Madrid", country: "Spain", imageName: "madrid"),
+            City(name: "Barcelona", country: "Spain", imageName: "barcelona"),
+            City(name: "New York", country: "USA", imageName: "new_york"),
+            City(name: "Paris", country: "France", imageName: "paris")
+        ],
+        vacationStyles: [
+            VacationStyle(name: "Relax", description: "Peaceful and relaxing experience", imageName: "relax",
+                          colors: [.blue, .cyan]),
+            VacationStyle(name: "Culture", description: "Museums, history and local traditions", imageName: "culture",
+                          colors: [.purple, .indigo]),
+            VacationStyle(name: "Gastronomical", description: "Local cuisine and food experiences", imageName: "food",
+                          colors: [.orange, .red]),
+            VacationStyle(name: "Radical", description: "Adventure and extreme sports", imageName: "radical",
+                          colors: [.green, .mint]),
+            VacationStyle(name: "Fun", description: "Entertainment and nightlife", imageName: "fun",
+                          colors: [.pink, .purple])
+        ]
+    )*/
 }

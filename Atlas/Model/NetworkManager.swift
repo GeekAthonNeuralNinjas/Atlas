@@ -9,7 +9,7 @@ import Foundation
 import MapKit
 
 struct NetworkManager {
-    static let shared = NetworkManager()
+    /*static let shared = NetworkManager()
     private init() {}
 
     func fetchPlaces(completion: @escaping (Result<[Place], Error>) -> Void) {
@@ -47,7 +47,7 @@ struct NetworkManager {
                 completion(.failure(error))
             }
         }.resume()
-    }
+    }*/
 }
 
 struct PlaceResponse: Decodable {

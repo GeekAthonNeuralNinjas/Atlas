@@ -13,11 +13,13 @@ import MapKit
 final class Tour {
     var id: String
     var name: String
+    var text: String
     @Relationship(deleteRule: .cascade) var places: [Place]
     
-    init(id: String = UUID().uuidString, name: String, places: [Place] = []) {
+    init(id: String = UUID().uuidString, name: String, places: [Place] = [], text: String) {
         self.id = id
         self.name = name
+        self.text = text
         self.places = places
     }
 }

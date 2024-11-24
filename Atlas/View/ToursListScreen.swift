@@ -80,25 +80,39 @@ struct ToursListScreen: View {
     }
 
     private func addSampleData() {
-        let samplePlaces = [
+        /*let samplePlaces = [
             Place(
                 coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
                 title: "Belém Tower",
-                description: "A 19th-century fortified tower located in Lisbon, Portugal.",
-                isLandmark: true
+                description: "A 16th-century fortified tower located in Lisbon, Portugal.",
+                isLandmark: true,
+                arrival: DateFormatter().date(from: "25/11/2024") ?? Date(),
+                arrivalHour: "14:00",
+                city: "Lisbon",
+                type: "Landmark",
+                address: "Av. Brasília, 1400-038 Lisboa, Portugal",
+                duration: "1 hour",
+                reason: "Iconic landmark with historical significance"
             ),
             Place(
                 coordinate: CLLocationCoordinate2D(latitude: 38.6970, longitude: -9.2033),
                 title: "Pastéis de Belém",
-                description: "The not so original home of Portugal's famous pastéis de nata.",
-                isLandmark: false
+                description: "The original home of Portugal's famous pastéis de nata.",
+                isLandmark: false,
+                arrival: DateFormatter().date(from: "25/11/2024") ?? Date(),
+                arrivalHour: "15:00",
+                city: "Lisbon",
+                type: "Restaurant",
+                address: "R. de Belém 84-92, 1300-085 Lisboa, Portugal",
+                duration: "1 hour",
+                reason: "Famous for its delicious pastries"
             )
         ]
         
-        let tour = Tour(name: "Lisbon also Highlights")
+        let tour = Tour(name: "Lisbon Highlights", text: "A tour of Lisbon's most iconic landmarks and restaurants.")
         tour.places = samplePlaces
         modelContext.insert(tour)
         
-        try? modelContext.save()
+        try? modelContext.save()*/
     }
 }

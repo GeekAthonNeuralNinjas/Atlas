@@ -45,7 +45,7 @@ struct PlacesListScreen: View {
     
     private func placeCard(place: Place) -> some View {
         VStack(alignment: .leading) {
-            Text(place.title)
+            Text(place.name)
                 .font(.headline)
             Text(place.text)
                 .font(.subheadline)
@@ -61,7 +61,7 @@ struct PlacesListScreen: View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    /*let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Tour.self, Place.self, configurations: config)
     
     // Add sample data for the preview
@@ -85,5 +85,5 @@ struct PlacesListScreen: View {
     container.mainContext.insert(tour)
     
     return ToursListScreen()
-        .modelContainer(container)
+        .modelContainer(container)*/
 }
