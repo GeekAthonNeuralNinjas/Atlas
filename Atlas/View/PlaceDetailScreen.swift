@@ -277,7 +277,7 @@ private struct PlaceDetailContent: View {
                     coordinate: next.coordinate,
                     description: next.text,
                     distance: 1000,
-                    pitch: next.isLandmark ? 65 : 0, // Example distance
+                    pitch: next.isLandmark ? 65 : 0,
                     heading: 0,
                     arrival: next.arrival, // Example heading
                     arrivalHour: next.arrivalHour,

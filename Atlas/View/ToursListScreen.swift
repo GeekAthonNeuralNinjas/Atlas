@@ -9,7 +9,6 @@ struct ToursListScreen: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     
-    // Add a region for the map's display (focus on the first tour's places)
     @State private var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
@@ -28,7 +27,7 @@ struct ToursListScreen: View {
         NavigationStack {
             ZStack {
                 // Background gradient
-                LinearGradient(colors: [Color(.systemBackground).opacity(0.8), Color(.systemBackground)], 
+                LinearGradient(colors: [Color(.systemBackground).opacity(0.8), Color(.systemBackground)],
                              startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
                 
@@ -40,6 +39,27 @@ struct ToursListScreen: View {
                         .foregroundColor(.red)
                         .padding()
                         .navigationTitle("Trips")
+                } else if tours.isEmpty {
+                    // Empty state when there are no tours
+                    VStack {
+                        Image(systemName: "map.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.gray)
+                            .padding(.bottom, 20)
+                        
+                        Text("No Tours Available")
+                            .font(.title)
+                            .foregroundColor(.secondary)
+                            .fontWeight(.bold)
+                        
+                        Text("Start by creating a new tour using the '+' button above.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 5)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+                    .navigationTitle("Trips")
                 } else {
                     ScrollView {
                         VStack(spacing: 0) {
@@ -58,16 +78,16 @@ struct ToursListScreen: View {
                         }
                     }
                     .navigationTitle("Trips")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            NavigationLink(destination: AddTourScreen()) {
-                                Image(systemName: "plus")
-                                    .font(.headline)
-                                    .padding(8)
-                                    .background(.ultraThinMaterial)
-                                    .clipShape(Circle())
-                            }
-                        }
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: AddTourScreen()) {
+                        Image(systemName: "plus")
+                            .font(.headline)
+                            .padding(8)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
                     }
                 }
             }
@@ -122,6 +142,7 @@ struct ToursListScreen: View {
     }
     
     private func addSampleData() {
+        // Sample data for testing (can be uncommented for testing)
         /*let samplePlaces = [
             Place(
                 coordinate: CLLocationCoordinate2D(latitude: 38.6916, longitude: -9.2157),

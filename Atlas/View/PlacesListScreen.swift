@@ -1,13 +1,16 @@
 import SwiftUI
 import SwiftData
 import MapKit
+import SwiftData
 
 struct PlacesListScreen: View {
     let title: String
     let tour: Tour
     @State private var isLoading = true
     @State private var errorMessage: String?
-    
+    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.modelContext) private var modelContext
+
     private var landmarks: [Place] {
         tour.places.filter { $0.isLandmark }
     }
@@ -73,7 +76,7 @@ struct PlacesListScreen: View {
                         .frame(height: 400)
                         
                         //Description
-                        Text("Welcome to Lisbon! This tour will take you to some of the most iconic places in the city. From historic landmarks to hidden gems, you'll get to experience the best of Lisbon in just a few days.")
+                        Text(tour.text)
                             .font(.body)
                             .padding(.horizontal)
                             .padding(.vertical, 16)
@@ -150,19 +153,38 @@ struct PlacesListScreen: View {
             isLoading = false
         }
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-            if let firstPlace = tour.places.first {
-                let placeIndex = tour.places.firstIndex(of: firstPlace) ?? 0
-                NavigationLink(
-                destination: PlaceDetailScreen(
-                    places: Array(tour.places),
-                    title: "Places to See",
-                    placeIndex: placeIndex
-                )
-                ) {
-                Image(systemName: "play.fill")
+            ToolbarItemGroup(placement: .primaryAction) {
+                // Delete button
+                Button(action: {
+                    let alert = UIAlertController(title: "Delete Tour", message: "Are you sure you want to delete this tour?", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                    alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { _ in
+                        do {
+                            modelContext.delete(tour)
+                            presentationMode.wrappedValue.dismiss()
+                        } catch {
+                            errorMessage = "An error occurred while deleting the tour."
+                        }
+                    })
+                    UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true)
+                }) {
+                    Image(systemName: "trash")
                 }
-            }
+
+                // NavigationLink for "Play" button
+                if let firstPlace = tour.places.first {
+                    let placeIndex = tour.places.firstIndex(of: firstPlace) ?? 0
+
+                    NavigationLink(
+                        destination: PlaceDetailScreen(
+                            places: Array(tour.places),
+                            title: "Places to See",
+                            placeIndex: placeIndex
+                        )
+                    ) {
+                        Image(systemName: "play.fill")
+                    }
+                }
             }
         }
     }
