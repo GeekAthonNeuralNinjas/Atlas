@@ -25,8 +25,11 @@ struct NavigationButtons: View {
             Spacer()
             
             Button(action: {
-                withAnimation(.spring()) { currentStep += 1 }
-                handleFinishButton()
+                if currentStep < 4 {
+                    withAnimation(.spring()) { currentStep += 1 }
+                } else {
+                    handleFinishButton()
+                }
             }) {
                 Label(currentStep < 4 ? "Next" : "Finish",
                       systemImage: currentStep < 4 ? "chevron.right" : "checkmark")
